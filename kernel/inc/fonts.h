@@ -23,8 +23,8 @@ typedef struct {
     uint32_t width;         /* width in pixels */
 } PSF_font;
 
-#define ROW_MAGIC 0xffff800000000010
-#define COLUMN_MAGIC 0xffff800000000020
+#define ROW_VGA_ADDRESS 0xffff800000000010
+#define COLUMN_VGA_ADDRESS 0xffff800000000020
 
 extern PSF_font _binary_src_font_psf_start;
 
@@ -48,8 +48,8 @@ void fill_glyph(const struct limine_framebuffer * frame_buffer, const uint32_t r
     const uint32_t max_columns =  (frame_buffer->width / font_handle->width) + 1;
     const uint32_t max_rows =  (frame_buffer->height / font_handle->height) + 1;
 
-    uint32_t row = *((uint32_t*)(ROW_MAGIC));
-    uint32_t column = *((uint32_t*)(COLUMN_MAGIC));
+    uint32_t row = *((uint32_t*)(ROW_VGA_ADDRESS));
+    uint32_t column = *((uint32_t*)(COLUMN_VGA_ADDRESS));
 
     volatile uint8_t* font_bmp = (uint8_t*)&_binary_src_font_psf_start;
     font_bmp += font_handle->headersize;
@@ -57,10 +57,10 @@ void fill_glyph(const struct limine_framebuffer * frame_buffer, const uint32_t r
     uint32_t x = (column * font_handle->width) + PIXEL_PADDING; // Will be column
     uint32_t y = (row * font_handle->height) + PIXEL_PADDING; // Will be row
 
-    for (uint32_t h = 0; h < font_handle->height; h++) {
-        uint8_t row = font_bmp[h];
-        for (uint32_t w = 0; w < font_handle->width; w++) {
-                plot_pixel(frame_buffer, (x+(font_handle->height-w-1)+PIXEL_PADDING), (y+h+PIXEL_PADDING), rgb); 
+    for (uint32_t height = 0; height < font_handle->height; height++) {
+        uint8_t row = font_bmp[height];
+        for (uint32_t width = 0; width < font_handle->width; width++) {
+                plot_pixel(frame_buffer, (x+(font_handle->height-width-1)+PIXEL_PADDING), (y+height+PIXEL_PADDING), rgb); 
         }
     }
 }
@@ -82,19 +82,19 @@ void put_glyph(const struct limine_framebuffer * frame_buffer, uint8_t glyph_ind
     uint32_t x = (column * font_handle->width) + PIXEL_PADDING; // Will be column
     uint32_t y = (row * font_handle->height) + PIXEL_PADDING; // Will be row
 
-    for (uint32_t h = 0; h < font_handle->height; h++) {
-        uint8_t row = font_bmp[h];
-        for (uint32_t w = 0; w < font_handle->width; w++) {
-            if (((row & (1 << w)) >> w) == 1) {
-                plot_pixel(frame_buffer, (x+(font_handle->height-w-1)+PIXEL_PADDING), (y+h+PIXEL_PADDING), rgb); 
+    for (uint32_t height = 0; height < font_handle->height; height++) {
+        uint8_t row = font_bmp[height];
+        for (uint32_t width = 0; width < font_handle->width; width++) {
+            if (((row & (1 << width)) >> width) == 1) {
+                plot_pixel(frame_buffer, (x+(font_handle->height-width-1)+PIXEL_PADDING), (y+height+PIXEL_PADDING), rgb); 
             }
         }
     }
 }
 
 void set_cursor_position(uint32_t row, uint32_t column) {
-    *((uint32_t*)(ROW_MAGIC)) = row;
-    *((uint32_t*)(COLUMN_MAGIC)) = column;
+    *((uint32_t*)(ROW_VGA_ADDRESS)) = row;
+    *((uint32_t*)(COLUMN_VGA_ADDRESS)) = column;
 }
 
 #define reset_cursor_position() set_cursor_position(0,0)
@@ -104,8 +104,8 @@ void printk(const struct limine_framebuffer * frame_buffer, char* string, const 
     PSF_font* font_handle = get_pc_screen_font_handle();
     PSF_font* font_metadata = &_binary_src_font_psf_start;
     const uint32_t max_columns =  (frame_buffer->width / font_metadata->width) + 1;
-    uint32_t row = *((uint32_t*)(ROW_MAGIC));
-    uint32_t column = *((uint32_t*)(COLUMN_MAGIC));
+    uint32_t row = *((uint32_t*)(ROW_VGA_ADDRESS));
+    uint32_t column = *((uint32_t*)(COLUMN_VGA_ADDRESS));
     while(*string != '\0') {
         char c = *string;
         if (c == '\n' || column >= max_columns) {
@@ -119,8 +119,8 @@ void printk(const struct limine_framebuffer * frame_buffer, char* string, const 
         string++;
     }
 
-    *((uint32_t*)(ROW_MAGIC)) = row;
-    *((uint32_t*)(COLUMN_MAGIC)) = column;
+    *((uint32_t*)(ROW_VGA_ADDRESS)) = row;
+    *((uint32_t*)(COLUMN_VGA_ADDRESS)) = column;
 
 }
 
