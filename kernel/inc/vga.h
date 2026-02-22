@@ -1,7 +1,9 @@
 #ifndef VGA_H
 #define VGA_H
 
-typedef struct {
+#pragma pack(1)
+typedef struct
+{
     char magic_field[2];
     uint32_t bitmap_total_size;
     uint32_t reserved;
@@ -21,12 +23,14 @@ typedef struct {
 
 extern bitmap_header_t _binary_src_boot_logo_bmp_start;
 
-bitmap_header_t* get_embedded_boot_logo() {
-    return (bitmap_header_t*)&_binary_src_boot_logo_bmp_start;
+bitmap_header_t *get_embedded_boot_logo()
+{
+    return (bitmap_header_t *)&_binary_src_boot_logo_bmp_start;
 }
 
 // Takes three bytes (red, green, blue) and returns a 32-bit integer representing the color
-int32_t from_rgb(int8_t red, int8_t green, int8_t blue) {
+int32_t from_rgb(int8_t red, int8_t green, int8_t blue)
+{
     return (red << 0) | (green << 8) | (blue << 16);
 }
 
@@ -36,26 +40,27 @@ int32_t from_rgb(int8_t red, int8_t green, int8_t blue) {
 #define WHITE 0xffffff
 #define BLACK 0x000000
 
-
-void clear_screen(const struct limine_framebuffer * frame_buffer, const int32_t rgb) {
+void clear_screen(const struct limine_framebuffer *frame_buffer, const int32_t rgb)
+{
     if (!frame_buffer)
         return;
 
     uint32_t width = frame_buffer->width;
     uint32_t height = frame_buffer->height;
 
-    int32_t* vga_buffer = (int32_t*)frame_buffer->address;
+    int32_t *vga_buffer = (int32_t *)frame_buffer->address;
 
     if (!vga_buffer)
         return;
-    
-    for(uint32_t x = 0; x < (width*height); x++) {
+
+    for (uint32_t x = 0; x < (width * height); x++)
+    {
         vga_buffer[x] = rgb;
     }
 }
 
-
-void plot_pixel(const struct limine_framebuffer * frame_buffer, const uint32_t x,  const uint32_t y, const int32_t rgb) {
+void plot_pixel(const struct limine_framebuffer *frame_buffer, const uint32_t x, const uint32_t y, const int32_t rgb)
+{
 
     if (!frame_buffer)
         return;
@@ -68,31 +73,52 @@ void plot_pixel(const struct limine_framebuffer * frame_buffer, const uint32_t x
     if (y > height) // Out of bounds
         return;
 
-    int32_t* vga_buffer = (int32_t*)frame_buffer->address;
+    int32_t *vga_buffer = (int32_t *)frame_buffer->address;
 
     if (!vga_buffer)
         return;
-    
+
     vga_buffer[(y * width) + x + 1] = rgb;
 }
 
-void draw_bitmap(const struct limine_framebuffer * frame_buffer, const bitmap_header_t* header, const uint32_t x, const uint32_t y) {
-     if (NULL == frame_buffer) {
+void draw_bitmap(const struct limine_framebuffer *frame_buffer, const bitmap_header_t *header, const uint32_t x, const uint32_t y)
+{
+
+    if (NULL == frame_buffer)
+    {
         plot_pixel(frame_buffer, x, y, from_rgb(0xff, 0x00, 0x00));
         return;
     }
-    if (NULL == header) {
+    if (NULL == header)
+    {
         plot_pixel(frame_buffer, x, y, from_rgb(0xff, 0x00, 0x00));
         return;
     }
-    if (!(header->magic_field[0] == 'B' && header->magic_field[1] == 'M')) {
+    if (!(header->magic_field[0] == 'B' && header->magic_field[1] == 'M'))
+    {
         plot_pixel(frame_buffer, x, y, from_rgb(0xff, 0x00, 0x00));
         return;
     }
 
-    plot_pixel(frame_buffer, x, y, from_rgb(0x00, 0xff, 0x00));
+    uint8_t *pixel = (uint8_t *)((uint32_t *)(header) + sizeof(header)); // Getting a pointer to the actual pixel data screw the header
+
+    if (NULL == pixel) {
+        return;
+    }
+
+    uint32_t y_offset = 0;
+    const uint32_t pixel_count = (header->width * header->height);
+    const uint32_t pixel_padding = 8;
+
+    for (int32_t pixel_index = 0; pixel_index < pixel_count; pixel_index++)
+    {
+        if (0 == (pixel_index % header->width)) {
+            y_offset++;
+        }
+        plot_pixel(frame_buffer, x + (pixel_index % header->width) + pixel_padding, y + y_offset + pixel_padding, *((uint32_t*)&pixel[pixel_index]));
+    }
+
     return;
 }
-
 
 #endif
