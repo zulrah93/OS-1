@@ -6,6 +6,7 @@
 #include <vga.h>
 #include <fonts.h>
 #include <system.h>
+#include <keyboard.h>
 
 // Set the base revision to 3, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -78,6 +79,9 @@ void kmain(void) {
      || framebuffer_request.response->framebuffer_count < 1) {
         halt(NULL);
     }
+
+    //Enable keyboard input for later use
+    keyboard_controller_enable();
 
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];

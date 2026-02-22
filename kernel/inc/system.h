@@ -8,6 +8,7 @@
 struct cpuid_t {
     char cpu_manufactuer_string[CPU_MANU_STRING_LENGTH_PLUS_NULL];
 };
+
 void get_cpu_information(struct cpuid_t* cpu_information) {
     
     if (!cpu_information) {
@@ -25,6 +26,5 @@ void get_cpu_information(struct cpuid_t* cpu_information) {
 
     return;
 }
-
 
 #endif
