@@ -86,7 +86,17 @@ void kmain(void) {
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
 
+    bitmap_header_t* boot_logo_bmp_header = get_embedded_boot_logo();
+
     clear_screen(framebuffer, WHITE);
+    if (NULL == boot_logo_bmp_header) {
+        clear_screen(framebuffer, RED);
+        // We're done, just hang...
+        halt(framebuffer);
+    }
+
+    draw_bitmap(framebuffer, boot_logo_bmp_header, 256, 256);
+
     reset_cursor_position();
 
     struct cpuid_t cpuid;

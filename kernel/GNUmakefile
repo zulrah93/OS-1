@@ -105,7 +105,8 @@ all: bin/$(OUTPUT)
 bin/$(OUTPUT): GNUmakefile linker.ld $(OBJ)
 	mkdir -p "$$(dirname $@)"
 	objcopy -O elf64-x86-64 -B i386 -I binary src/font.psf obj/font.psf.o
-	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJ) obj/font.psf.o -o $@ 
+	objcopy -O elf64-x86-64 -B i386 -I binary src/boot_logo.bmp obj/boot_logo.bmp.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJ) obj/font.psf.o obj/boot_logo.bmp.o -o $@ 
 # Compilation rules for *.c files.
 obj/%.c.o: src/%.c GNUmakefile
 	mkdir -p "$$(dirname $@)"

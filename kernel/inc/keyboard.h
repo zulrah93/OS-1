@@ -96,6 +96,7 @@ void keyboard_controller_enable() {
 
 bool has_keyboard_controller_passed_self_test() {
     outb(CONTROLLER_SELF_TEST, KEYBOARD_CONTROLLER_PORT);
+    return false;
 }
 
 #endif

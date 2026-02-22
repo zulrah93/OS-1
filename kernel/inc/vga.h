@@ -1,9 +1,33 @@
 #ifndef VGA_H
 #define VGA_H
 
+typedef struct {
+    char magic_field[2];
+    uint32_t bitmap_total_size;
+    uint32_t reserved;
+    uint32_t offset_to_pixels;
+    uint32_t header_size;
+    int32_t width;
+    int32_t height;
+    uint16_t plane_count;
+    uint16_t bits_per_pixel;
+    uint32_t compression_method;
+    uint32_t data_size;
+    uint32_t horizontal_resolution;
+    uint32_t vertical_resolution;
+    uint32_t color_pallete_count;
+    uint32_t important_colors_used;
+} bitmap_header_t;
+
+extern bitmap_header_t _binary_src_boot_logo_bmp_start;
+
+bitmap_header_t* get_embedded_boot_logo() {
+    return (bitmap_header_t*)&_binary_src_boot_logo_bmp_start;
+}
+
 // Takes three bytes (red, green, blue) and returns a 32-bit integer representing the color
-int32_t from_rgb(int8_t r, int8_t g, int8_t b) {
-    return (r << 0) | (g << 8) | (b << 16);
+int32_t from_rgb(int8_t red, int8_t green, int8_t blue) {
+    return (red << 0) | (green << 8) | (blue << 16);
 }
 
 #define RED 0xff0000
@@ -50,6 +74,24 @@ void plot_pixel(const struct limine_framebuffer * frame_buffer, const uint32_t x
         return;
     
     vga_buffer[(y * width) + x + 1] = rgb;
+}
+
+void draw_bitmap(const struct limine_framebuffer * frame_buffer, const bitmap_header_t* header, const uint32_t x, const uint32_t y) {
+     if (NULL == frame_buffer) {
+        plot_pixel(frame_buffer, x, y, from_rgb(0xff, 0x00, 0x00));
+        return;
+    }
+    if (NULL == header) {
+        plot_pixel(frame_buffer, x, y, from_rgb(0xff, 0x00, 0x00));
+        return;
+    }
+    if (!(header->magic_field[0] == 'B' && header->magic_field[1] == 'M')) {
+        plot_pixel(frame_buffer, x, y, from_rgb(0xff, 0x00, 0x00));
+        return;
+    }
+
+    plot_pixel(frame_buffer, x, y, from_rgb(0x00, 0xff, 0x00));
+    return;
 }
 
 
