@@ -27,10 +27,11 @@ static volatile struct limine_framebuffer_request framebuffer_request = {
 };
 
 __attribute__((used, section(".limine_requests")))
-static volatile struct limine_efi_memmap_request efi_memmap_request = {
-    .id = LIMINE_EFI_MEMMAP_REQUEST,
+static volatile struct limine_memmap_request memmap_request = {
+    .id = LIMINE_MEMMAP_REQUEST,
     .revision = 0
 };
+
 
 
 // Finally, define the start and end markers for the Limine requests.
@@ -70,9 +71,15 @@ void kmain(void) {
 
     uint64_t total_memory_size = 0;
 
-    if (efi_memmap_request.response) {
-        total_memory_size = efi_memmap_request.response->memmap_size;
+    const size_t entry_count = memmap_request.response->entry_count; 
+    struct limine_memmap_entry** entries = memmap_request.response->entries;
+
+
+    for(size_t index = 0; index < entry_count; index++) {
+        total_memory_size += entries[index]->length;
     }
+
+   
 
     // Ensure we got a framebuffer.
     if (framebuffer_request.response == NULL
