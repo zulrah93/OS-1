@@ -86,21 +86,18 @@ void draw_bitmap(const struct limine_framebuffer *frame_buffer, const bitmap_hea
 
     if (NULL == frame_buffer)
     {
-        plot_pixel(frame_buffer, x, y, from_rgb(0xff, 0x00, 0x00));
         return;
     }
     if (NULL == header)
     {
-        plot_pixel(frame_buffer, x, y, from_rgb(0xff, 0x00, 0x00));
         return;
     }
     if (!(header->magic_field[0] == 'B' && header->magic_field[1] == 'M'))
     {
-        plot_pixel(frame_buffer, x, y, from_rgb(0xff, 0x00, 0x00));
         return;
     }
 
-    uint8_t *pixel = (uint8_t *)((uint32_t *)(header) + sizeof(header)); // Getting a pointer to the actual pixel data screw the header
+    uint32_t *pixel = ((uint32_t *)(header) + sizeof(header)); // Getting a pointer to the actual pixel data screw the header
 
     if (NULL == pixel) {
         return;
@@ -112,10 +109,10 @@ void draw_bitmap(const struct limine_framebuffer *frame_buffer, const bitmap_hea
 
     for (int32_t pixel_index = 0; pixel_index < pixel_count; pixel_index++)
     {
-        if (0 == (pixel_index % header->width)) {
+        if ((pixel_index != 0) && (0 == (pixel_index % header->width))) {
             y_offset++;
         }
-        plot_pixel(frame_buffer, x + (pixel_index % header->width) + pixel_padding, y + y_offset + pixel_padding, *((uint32_t*)&pixel[pixel_index]));
+        plot_pixel(frame_buffer, x + (pixel_index % header->width) + pixel_padding, y + y_offset + pixel_padding, pixel[pixel_count - pixel_index - 1]);
     }
 
     return;

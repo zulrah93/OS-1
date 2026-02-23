@@ -95,7 +95,7 @@ void kmain(void) {
         halt(framebuffer);
     }
 
-    draw_bitmap(framebuffer, boot_logo_bmp_header, (framebuffer->width / 2) - boot_logo_bmp_header->width, (framebuffer->height / 2) - boot_logo_bmp_header->height);
+    draw_bitmap(framebuffer, boot_logo_bmp_header, (framebuffer->width / 2) - boot_logo_bmp_header->width, 8);
 
     reset_cursor_position();
 
