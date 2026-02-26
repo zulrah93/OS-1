@@ -31,7 +31,7 @@ bitmap_header_t *get_embedded_boot_logo()
 // Takes three bytes (red, green, blue) and returns a 32-bit integer representing the color
 int32_t from_rgb(int8_t red, int8_t green, int8_t blue)
 {
-    return (red << 0) | (green << 8) | (blue << 16);
+    return (red << 16) | (green << 8) | blue;
 }
 
 #define RED 0xff0000
@@ -97,7 +97,11 @@ void draw_bitmap(const struct limine_framebuffer *frame_buffer, const bitmap_hea
         return;
     }
 
-    uint32_t *pixel = ((uint32_t *)(header) + sizeof(header)); // Getting a pointer to the actual pixel data screw the header
+    if (header->bits_per_pixel != 32) {
+        return; // We only support 32bpp and uncompressed (raw)
+    }
+
+    int32_t *pixel = (int32_t *)(header+1); // Getting a pointer to the actual pixel data screw the header
 
     if (NULL == pixel) {
         return;
@@ -112,7 +116,10 @@ void draw_bitmap(const struct limine_framebuffer *frame_buffer, const bitmap_hea
         if ((pixel_index != 0) && (0 == (pixel_index % header->width))) {
             y_offset++;
         }
-        plot_pixel(frame_buffer, x + (pixel_index % header->width) + pixel_padding, y + y_offset + pixel_padding, pixel[pixel_count - pixel_index - 1]);
+        int32_t current_pixel = pixel[pixel_count - pixel_index - 1];
+        plot_pixel(frame_buffer, 
+            x + (pixel_index % header->width) + pixel_padding, 
+            y + y_offset + pixel_padding, current_pixel);
     }
 
     return;

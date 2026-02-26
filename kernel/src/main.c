@@ -121,9 +121,9 @@ void kmain(void) {
     memcpy(buffer + offset, cpu_text, string_length(cpu_text));
     offset = string_length(buffer);
     memcpy(buffer + offset, cpuid.cpu_manufactuer_string, string_length(cpuid.cpu_manufactuer_string));
-    printk(framebuffer, buffer, from_rgb(75, 0x00, 0x82));
+    printk(framebuffer, buffer, from_rgb(0x82, 0x00,75));
     set_cursor_position(5, 0);
-    printk(framebuffer, "$ ", from_rgb(0x4b, 0x00, 0x82));
+    printk(framebuffer, "$ ", from_rgb(0x82, 0x00, 0x4b));
 
     // We're done, just hang...
     halt(framebuffer);
