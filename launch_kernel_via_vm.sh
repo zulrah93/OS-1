@@ -1,1 +1,1 @@
-qemu-system-x86_64 -cdrom template.iso  -enable-kvm -m 4096 -bios /usr/share/ovmf/OVMF.fd
+qemu-system-x86_64 -cdrom template.iso  -enable-kvm -m 4096 -bios /usr/share/ovmf/OVMF.fd -d int -no-shutdown -no-reboot -monitor stdio

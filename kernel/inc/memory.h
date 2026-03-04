@@ -1,6 +1,13 @@
-#ifndef MEMORY_H
-#define MEMORY_H
+#ifndef K_MALLOC_H
+#define K_MALLOC_H
 
+#include <limine.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
+#include <utility.h>
+
+#define SLIDE_ADDRESS (0xffffffff80000000)
 
 // GCC and Clang reserve the right to generate calls to the following
 // 4 functions even if they are not directly called.
@@ -59,40 +66,71 @@ int memcmp(const void *s1, const void *s2, size_t n) {
     return 0;
 }
 
-uint32_t string_length(char* string) {
-    uint32_t size = 0;
-    while(*string) {
-        size++;
-        string++;
-    }
-    return size;
-}
+// Meta data about our memory allocations
 
-void integer_to_string(char* buffer, uint64_t size, uint64_t number) {
-    if (size == 0) {
-        return;
+typedef struct {
+    size_t block_size_bytes;
+    bool is_free;
+
+} heap_header_t;
+
+static heap_header_t* start_of_heap = NULL;
+
+bool init_memory_pool(struct limine_memmap_entry** entries, const size_t entries_size) {
+    if (NULL == entries) {
+        return false;
     }
-    if (number == 0) {
-        buffer[0] = '0';
-        return;
-    }
-    int64_t digit_count = 0;
-    for(;;) {
-        buffer[digit_count++] = ((number % 10) + '0');
-        number /= 10;
-        if (number == 0) {
-            break;
+
+    for(size_t index = 0; index < entries_size; index++) {
+        if (entries[index]->type == LIMINE_MEMMAP_USABLE) {
+            start_of_heap = (heap_header_t*)(entries[index]->base + SLIDE_ADDRESS);
+            memset(start_of_heap, 0, sizeof(start_of_heap));
+            start_of_heap->is_free = true;
+            start_of_heap->block_size_bytes = 0;
+            return true;
         }
     }
-    int64_t index = digit_count - 1;
-    digit_count = 0;
-    while(digit_count < index) {
-        char temp = buffer[digit_count]; // We could avoid this and swap in place but I feel this is fine after all its a 64-bit OS we got plenty of space
-        buffer[digit_count] = buffer[index];
-        buffer[index] = temp;
-        index--;
-        digit_count++;
+    
+    return NULL != start_of_heap;
+}
+
+
+void* k_malloc(size_t bytes) {
+    if (NULL == start_of_heap) {
+        return NULL;
     }
+
+    if (0 == start_of_heap->block_size_bytes) {
+        start_of_heap->block_size_bytes = bytes;
+        return (start_of_heap + 1);
+    }
+
+    heap_header_t* head = (heap_header_t*)((char*)start_of_heap + start_of_heap->block_size_bytes);
+    while (!head->is_free) {
+        head = (heap_header_t*)((char*)head + head->block_size_bytes);
+    }
+    head->block_size_bytes = bytes;
+    return (head + 1);
+}
+
+
+void k_free(void* block) {
+    if (NULL == block) {
+        return;
+    }
+    heap_header_t* block_header = (heap_header_t*)block - 1;
+    block_header->is_free = true;
+}
+
+//Note: Use k_free since this is just convience for k_malloc string allocation
+char* cstring_alloc(char* c_string) {
+    if (NULL == c_string) {
+        return NULL;
+    }
+    size_t bytes = string_length(c_string);
+    char* heap_string = (char*)k_malloc(bytes);
+    memcpy(heap_string, c_string, bytes);
+    return heap_string;
 }
 
 #endif

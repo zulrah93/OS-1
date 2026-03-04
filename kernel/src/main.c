@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <memory.h>
 #include <limine.h>
+#include <memory.h>
 #include <vga.h>
 #include <fonts.h>
 #include <system.h>
@@ -46,12 +46,10 @@ static volatile LIMINE_REQUESTS_END_MARKER;
 
 // Halt and catch fire function.
 static void halt(const struct limine_framebuffer *framebuffer) {
-    uint32_t color = BLACK;
+    uint32_t color = BLUE;
     for (;;) {
         if (framebuffer) {
             fill_glyph(framebuffer, color);
-            // color ^= BLACK;
-           // no_operation();
         }
         else {
             asm("hlt");
@@ -70,17 +68,22 @@ void kmain(void) {
     }
 
     uint64_t total_memory_size = 0;
+    uint64_t total_usable_memory = 0;
 
     const size_t entry_count = memmap_request.response->entry_count; 
     struct limine_memmap_entry** entries = memmap_request.response->entries;
 
-
     for(size_t index = 0; index < entry_count; index++) {
+        if (LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE == entries[index]->type) {
+            total_usable_memory += entries[index]->length;
+        }
         total_memory_size += entries[index]->length;
     }
 
-   
+    // Initialize memory pool
+    init_memory_pool(entries, entry_count);
 
+   
     // Ensure we got a framebuffer.
     if (framebuffer_request.response == NULL
      || framebuffer_request.response->framebuffer_count < 1) {
@@ -110,19 +113,26 @@ void kmain(void) {
     memset(&cpuid, 0, sizeof(cpuid));
 
     get_cpu_information(&cpuid);
-    char buffer[256];
+    char buffer[512];
     memset(buffer, '\0', sizeof(buffer));
     const char* welcome_text = "Welcome to OS/1!\nTotal System Memory (Bytes): ";
     uint32_t welcome_text_length = string_length(welcome_text);
     memcpy(buffer, welcome_text, welcome_text_length);
-    integer_to_string(buffer + welcome_text_length, sizeof(buffer) - welcome_text_length, total_memory_size);
+    integer_to_string(buffer + welcome_text_length, total_memory_size);
     uint32_t offset = string_length(buffer);
+    const char* usable_memory_text = "\nUsable Memory [Bootloader Reclaimable Memory] (Bytes): ";
+    memcpy(buffer + offset, usable_memory_text, string_length(usable_memory_text));
+    offset = string_length(buffer);
+    integer_to_string(buffer + offset, total_usable_memory);
+    offset = string_length(buffer);
     const char* cpu_text = "\nCPU Detected: ";
     memcpy(buffer + offset, cpu_text, string_length(cpu_text));
     offset = string_length(buffer);
     memcpy(buffer + offset, cpuid.cpu_manufactuer_string, string_length(cpuid.cpu_manufactuer_string));
     printk(framebuffer, buffer, from_rgb(0x82, 0x00,75));
-    set_cursor_position(5, 0);
+    char* heap_alloc_message = cstring_alloc("\nIf you see this message I allocated something on the heap -- this string!");
+    printk(framebuffer, heap_alloc_message, from_rgb(0x82, 0x00,75));
+    set_cursor_position(6, 0);
     printk(framebuffer, "$ ", from_rgb(0x82, 0x00, 0x4b));
 
     // We're done, just hang...
