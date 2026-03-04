@@ -1,3 +1,4 @@
 # Initial screenshot
-<img width="1023" height="768" alt="image" src="https://github.com/user-attachments/assets/2611b091-fb63-4e32-a88d-1b18e65d33bc" />
+<img width="1025" height="767" alt="image" src="https://github.com/user-attachments/assets/bebafdf8-55ed-4550-8a66-085feb707a02" />
+
 
