@@ -115,24 +115,34 @@ void kmain(void) {
     get_cpu_information(&cpuid);
     char buffer[512];
     memset(buffer, '\0', sizeof(buffer));
+    
     const char* welcome_text = "Welcome to OS/1!\nTotal System Memory (Bytes): ";
     uint32_t welcome_text_length = string_length(welcome_text);
     memcpy(buffer, welcome_text, welcome_text_length);
     integer_to_string(buffer + welcome_text_length, total_memory_size);
     uint32_t offset = string_length(buffer);
+    
     const char* usable_memory_text = "\nUsable Memory [Bootloader Reclaimable Memory] (Bytes): ";
     memcpy(buffer + offset, usable_memory_text, string_length(usable_memory_text));
     offset = string_length(buffer);
     integer_to_string(buffer + offset, total_usable_memory);
     offset = string_length(buffer);
+    
     const char* cpu_text = "\nCPU Detected: ";
     memcpy(buffer + offset, cpu_text, string_length(cpu_text));
     offset = string_length(buffer);
     memcpy(buffer + offset, cpuid.cpu_manufactuer_string, string_length(cpuid.cpu_manufactuer_string));
+    
     printk(framebuffer, buffer, from_rgb(0x82, 0x00,75));
-    char* heap_alloc_message = cstring_alloc("\nIf you see this message I allocated something on the heap -- this string!");
-    printk(framebuffer, heap_alloc_message, from_rgb(0x82, 0x00,75));
-    set_cursor_position(6, 0);
+    printk(framebuffer, (((get_cr0() & (1 << 31)) != 0) ? "\nPaging Enabled [Yes]" : "\nPaging Enabled [No]"), from_rgb(0x82, 0x00,75));
+    
+    printk(framebuffer, "\nCR0 has the value of ", from_rgb(0x82, 0x00,75));
+    printk(framebuffer, get_cr0_as_heap_str(), from_rgb(0x82, 0x00,75));
+    printk(framebuffer, " and CR3 has the value of ", from_rgb(0x82, 0x00,75));
+    printk(framebuffer, get_cr3_as_heap_str(), from_rgb(0x82, 0x00,75));
+    printk(framebuffer, "\n", from_rgb(0x82, 0x00,75));
+    
+    set_cursor_position(7, 0);
     printk(framebuffer, "$ ", from_rgb(0x82, 0x00, 0x4b));
 
     // We're done, just hang...
