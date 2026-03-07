@@ -39,12 +39,14 @@ uint64_t get_cr0() {
 
 char* get_cr0_as_heap_str(){
     uint64_t cr0 = get_cr0();
-    char* cr0_str = (char*)k_malloc(12);
+    char* cr0_str = (char*)k_malloc(14);
     if (NULL == cr0_str) {
         return NULL;
     }
-    memset(cr0_str, 0, 12);
-    integer_to_string(cr0_str, cr0);
+    memset(cr0_str, 0, 14);
+    cr0_str[0] = '0';
+    cr0_str[1] = 'x';
+    integer_to_hex(cr0_str + 2, cr0);
     return cr0_str;
 }
 
@@ -58,12 +60,14 @@ uint64_t get_cr3() {
 
 char* get_cr3_as_heap_str(){
     uint64_t cr3 = get_cr3();
-    char* cr3_str = (char*)k_malloc(12);
+    char* cr3_str = (char*)k_malloc(14);
     if (NULL == cr3_str) {
         return NULL;
     }
-    memset(cr3_str, 0, 12);
-    integer_to_string(cr3_str, cr3);
+    memset(cr3_str, 0, 14);
+    cr3_str[0] = '0';
+    cr3_str[1] = 'x';
+    integer_to_hex(cr3_str + 2, cr3);
     return cr3_str;
 }
 
