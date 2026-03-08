@@ -113,7 +113,7 @@ void kmain(void) {
     memset(&cpuid, 0, sizeof(cpuid));
 
     get_cpu_information(&cpuid);
-    char buffer[512];
+    char* buffer = (char*)k_malloc(512); //[512];
     memset(buffer, '\0', sizeof(buffer));
     
     const char* welcome_text = "Welcome to OS/1!\nTotal System Memory (Bytes): ";

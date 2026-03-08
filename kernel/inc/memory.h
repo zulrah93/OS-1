@@ -84,7 +84,7 @@ bool init_memory_pool(struct limine_memmap_entry** entries, const size_t entries
     for(size_t index = 0; index < entries_size; index++) {
         if (entries[index]->type == LIMINE_MEMMAP_USABLE) {
             start_of_heap = (heap_header_t*)(entries[index]->base + SLIDE_ADDRESS);
-            memset(start_of_heap, 0, sizeof(start_of_heap));
+            memset(start_of_heap, 0, sizeof(heap_header_t));
             start_of_heap->is_free = true;
             start_of_heap->block_size_bytes = 0;
             return true;
@@ -102,6 +102,10 @@ void* k_malloc(size_t bytes) {
 
     if (0 == start_of_heap->block_size_bytes) {
         start_of_heap->block_size_bytes = bytes;
+        start_of_heap->is_free = false;
+        heap_header_t* next_free_header = (heap_header_t*)((char*)start_of_heap + start_of_heap->block_size_bytes);
+        next_free_header->block_size_bytes = 0;
+        next_free_header->is_free = true;
         return (start_of_heap + 1);
     }
 
@@ -110,6 +114,10 @@ void* k_malloc(size_t bytes) {
         head = (heap_header_t*)((char*)head + head->block_size_bytes);
     }
     head->block_size_bytes = bytes;
+    head->is_free = false;
+    heap_header_t* next_free_header = (heap_header_t*)((char*)head + head->block_size_bytes);
+    next_free_header->block_size_bytes = 0;
+    next_free_header->is_free = true;
     return (head + 1);
 }
 
