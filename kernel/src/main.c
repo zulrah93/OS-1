@@ -74,7 +74,7 @@ void kmain(void) {
     struct limine_memmap_entry** entries = memmap_request.response->entries;
 
     for(size_t index = 0; index < entry_count; index++) {
-        if (LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE == entries[index]->type) {
+        if (LIMINE_MEMMAP_USABLE == entries[index]->type) {
             total_usable_memory += entries[index]->length;
         }
         total_memory_size += entries[index]->length;
@@ -113,8 +113,8 @@ void kmain(void) {
     memset(&cpuid, 0, sizeof(cpuid));
 
     get_cpu_information(&cpuid);
-    char* buffer = (char*)k_malloc(512); //[512];
-    memset(buffer, '\0', sizeof(buffer));
+    char* buffer = (char*)k_malloc(256); //[512];
+    memset(buffer, '\0', 128);
     
     const char* welcome_text = "Welcome to OS/1!\nTotal System Memory (Bytes): ";
     uint32_t welcome_text_length = string_length(welcome_text);
@@ -122,7 +122,7 @@ void kmain(void) {
     integer_to_string(buffer + welcome_text_length, total_memory_size);
     uint32_t offset = string_length(buffer);
     
-    const char* usable_memory_text = "\nUsable Memory [Bootloader Reclaimable Memory] (Bytes): ";
+    const char* usable_memory_text = "\nUsable Memory (Bytes): ";
     memcpy(buffer + offset, usable_memory_text, string_length(usable_memory_text));
     offset = string_length(buffer);
     integer_to_string(buffer + offset, total_usable_memory);

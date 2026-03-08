@@ -103,19 +103,19 @@ void* k_malloc(size_t bytes) {
     if (0 == start_of_heap->block_size_bytes) {
         start_of_heap->block_size_bytes = bytes;
         start_of_heap->is_free = false;
-        heap_header_t* next_free_header = (heap_header_t*)((char*)start_of_heap + start_of_heap->block_size_bytes);
+        heap_header_t* next_free_header = (heap_header_t*)((char*)start_of_heap + sizeof(heap_header_t) + start_of_heap->block_size_bytes);
         next_free_header->block_size_bytes = 0;
         next_free_header->is_free = true;
         return (start_of_heap + 1);
     }
 
-    heap_header_t* head = (heap_header_t*)((char*)start_of_heap + start_of_heap->block_size_bytes);
+    heap_header_t* head = (heap_header_t*)((char*)start_of_heap + sizeof(heap_header_t) +  start_of_heap->block_size_bytes);
     while (!head->is_free) {
-        head = (heap_header_t*)((char*)head + head->block_size_bytes);
+        head = (heap_header_t*)((char*)head + sizeof(heap_header_t) + head->block_size_bytes);
     }
     head->block_size_bytes = bytes;
     head->is_free = false;
-    heap_header_t* next_free_header = (heap_header_t*)((char*)head + head->block_size_bytes);
+    heap_header_t* next_free_header = (heap_header_t*)((char*)head + sizeof(heap_header_t) + head->block_size_bytes);
     next_free_header->block_size_bytes = 0;
     next_free_header->is_free = true;
     return (head + 1);
