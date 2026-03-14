@@ -52,38 +52,43 @@ enum KEYBOARD_CONTROLLER_COMMANDS {
     SYSTEM_RESET = 0xFE
 };
 
-struct keyboard_led_config_t {
+typedef struct {
     bool number_lock; // if true light it up else don't same as below
     bool caps_lock;
     bool scroll_lock;
-};
+} keyboard_led_config_t;
 
 // -- FUNCTIONS --
 
-uint8_t keyboard_poll_status() {
+uint8_t keyboard_poll_controller_status() {
     return inb(KEYBOARD_CONTROLLER_PORT);
 }
 
-inline void block_till_io_ready() {
-    while(true) {
-        if (0 == (keyboard_poll_status() & IN_BUFFER_STATUS)) {
-            return;
-        }
-    }
-    return;
+uint8_t keyboard_poll_encoder_status() {
+    return inb(KEYBOARD_ENCODER_PORT);
 }
 
-void keyboard_set_led_config(const struct keyboard_led_config_t* config) {
+void block_till_controller_io_in_buf_ready() {
+    while(0 != (keyboard_poll_controller_status() & IN_BUFFER_STATUS)) {
+    }
+}
+
+void block_till_controller_io_out_buf_ready() {
+    while(!(keyboard_poll_controller_status() & OUT_BUFFER_STATUS)) {
+    }
+}
+
+void keyboard_set_led_config(const keyboard_led_config_t* config) {
     if (NULL == config) {
         return;
     }
 
     uint8_t led_data_encoded = (config->scroll_lock ? 1 : 0) | (config->number_lock ? (1 << 1) : 0) | (config->caps_lock ? (1 << 2) : 0);
     
-    block_till_io_ready();
-    outb(KEYBOARD_ENCODER_PORT, ENCODER_SET_LEDS);
-    block_till_io_ready();
-    outb(KEYBOARD_ENCODER_PORT, led_data_encoded);
+    block_till_controller_io_in_buf_ready();
+    outb(ENCODER_SET_LEDS, KEYBOARD_ENCODER_PORT);
+    block_till_controller_io_in_buf_ready();
+    outb(led_data_encoded, KEYBOARD_ENCODER_PORT);
 }
 
 void keyboard_controller_disable() {
@@ -94,9 +99,21 @@ void keyboard_controller_enable() {
     outb(KC_ENABLE, KEYBOARD_CONTROLLER_PORT);
 }
 
+void keyboard_encoder_enable() {
+    outb(ENCODER_ENABLE_KEYBOARD, KEYBOARD_ENCODER_PORT);
+}
+
 bool has_keyboard_controller_passed_self_test() {
     outb(CONTROLLER_SELF_TEST, KEYBOARD_CONTROLLER_PORT);
     return false;
+}
+
+uint8_t poll_scan_code() {
+    block_till_controller_io_in_buf_ready();
+    outb(READ_OUTPUT, KEYBOARD_CONTROLLER_PORT);
+    block_till_controller_io_out_buf_ready();
+    return inb(KEYBOARD_ENCODER_PORT);
+
 }
 
 #endif

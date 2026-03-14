@@ -90,8 +90,12 @@ void kmain(void) {
         halt(NULL);
     }
 
-    //Enable keyboard input for later use
+    //Enable keyboard for later use
+    keyboard_encoder_enable();
     keyboard_controller_enable();
+    if (has_keyboard_controller_passed_self_test()) {
+        halt(NULL);
+    }
 
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
@@ -144,6 +148,12 @@ void kmain(void) {
     
     set_cursor_position(7, 0);
     printk(framebuffer, "$ ", from_rgb(0x82, 0x00, 0x4b));
+
+    while(0x1c != poll_scan_code()) {
+        
+    }
+
+    clear_screen(framebuffer, RED);
 
     // We're done, just hang...
     halt(framebuffer);

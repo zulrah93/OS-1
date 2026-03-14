@@ -110,10 +110,18 @@ void* k_malloc(size_t bytes) {
     }
 
     heap_header_t* head = (heap_header_t*)((char*)start_of_heap + sizeof(heap_header_t) +  start_of_heap->block_size_bytes);
+    
     while (!head->is_free) {
         head = (heap_header_t*)((char*)head + sizeof(heap_header_t) + head->block_size_bytes);
+        if (head->is_free && ((head->block_size_bytes == 0) || head->block_size_bytes >= bytes)) {
+            break;
+        }
     }
-    head->block_size_bytes = bytes;
+    
+    if (0 == head->block_size_bytes) {
+        head->block_size_bytes = bytes;
+    }
+    
     head->is_free = false;
     heap_header_t* next_free_header = (heap_header_t*)((char*)head + sizeof(heap_header_t) + head->block_size_bytes);
     next_free_header->block_size_bytes = 0;
