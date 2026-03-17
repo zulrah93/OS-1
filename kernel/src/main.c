@@ -93,7 +93,7 @@ void kmain(void) {
     //Enable keyboard for later use
     keyboard_encoder_enable();
     keyboard_controller_enable();
-    if (has_keyboard_controller_passed_self_test()) {
+    if (!has_keyboard_controller_passed_self_test()) {
         halt(NULL);
     }
 
@@ -144,16 +144,37 @@ void kmain(void) {
     printk(framebuffer, get_cr0_as_heap_str(), from_rgb(0x82, 0x00,75));
     printk(framebuffer, " and CR3 has the value of ", from_rgb(0x82, 0x00,75));
     printk(framebuffer, get_cr3_as_heap_str(), from_rgb(0x82, 0x00,75));
+    printk(framebuffer, " and the date is ", from_rgb(0x82, 0x00,75));
+    rtc_date_t date;
+    memset(&date, 0, sizeof(date));
+    get_real_time_date(&date);
+    char month[3];
+    memset(month, 0, sizeof(month));
+    integer_to_string(month, date.month);
+    printk(framebuffer, month, from_rgb(0x82, 0x00,75));
+    printk(framebuffer, "/", from_rgb(0x82, 0x00,75));
+    char day[3];
+    memset(day, 0, sizeof(day));
+    integer_to_string(day, date.day);
+    printk(framebuffer, day, from_rgb(0x82, 0x00,75));
+    printk(framebuffer, "/", from_rgb(0x82, 0x00,75));
+    char year[3];
+    memset(year, 0, sizeof(year));
+    integer_to_string(year, date.year);
+    printk(framebuffer, year, from_rgb(0x82, 0x00,75));
     printk(framebuffer, "\n", from_rgb(0x82, 0x00,75));
-    
-    set_cursor_position(7, 0);
+    set_cursor_position(8, 0);
     printk(framebuffer, "$ ", from_rgb(0x82, 0x00, 0x4b));
 
-    while(0x1c != poll_scan_code()) {
-        
-    }
-
-    clear_screen(framebuffer, RED);
+    // uint8_t scan_code = poll_scan_code();
+    // do {
+    //     if (scan_code >= 1 && scan_code <= 58) {
+    //         break;
+    //     }
+    //     if (scan_code >= 0x81 && scan_code <= 0xd8) {
+    //         break;
+    //     }
+    // } while (scan_code)
 
     // We're done, just hang...
     halt(framebuffer);

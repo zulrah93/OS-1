@@ -2,10 +2,22 @@
 #define SYSTEM_H
 #include <memory.h>
 #include <utility.h>
+#include <io.h>
 
 #include "/usr/lib/gcc/x86_64-linux-gnu/15/include/cpuid.h"
 
 #define CPU_MANU_STRING_LENGTH_PLUS_NULL 13
+
+#define CMOS_OUTPUT_PORT 0x70
+#define CMOS_INPUT_PORT 0x71
+#define SECONDS_REGISTER 0x0
+#define MINUTES_REGISTER 0x2
+#define HOURS_REGISTER 0x4
+#define DAY_REGISTER 0x07
+#define MONTH_REGISTER 0x08
+#define YEAR_REGISTER 0x09
+
+#define MAX_DATE_STRING_LENGTH 11 // Includes null char
 
 struct cpuid_t {
     char cpu_manufactuer_string[CPU_MANU_STRING_LENGTH_PLUS_NULL];
@@ -70,6 +82,33 @@ char* get_cr3_as_heap_str(){
     integer_to_hex(cr3_str + 2, cr3);
     return cr3_str;
 }
+
+typedef struct  {
+    uint8_t month;
+    uint8_t day;
+    uint8_t year;
+} rtc_date_t;
+
+void get_real_time_date(rtc_date_t* date) {
+    if (NULL == date) {
+        return;
+    }
+    char month[3];
+    memset(month, 0, sizeof(month));
+    
+    outb(MONTH_REGISTER, CMOS_OUTPUT_PORT);
+    date->month = (uint8_t)inb(CMOS_INPUT_PORT);
+    date->month = (date->month & 0x0F) + ((date->month / 16) * 10); // BCD to actual integer
+
+    outb(DAY_REGISTER, CMOS_OUTPUT_PORT);
+    date->day = (uint8_t)inb(CMOS_INPUT_PORT);
+    date->day = (date->day & 0x0F) + ((date->day / 16) * 10) - 1; // BCD to actual integer
+
+    outb(YEAR_REGISTER, CMOS_OUTPUT_PORT);
+    date->year = (uint8_t)inb(CMOS_INPUT_PORT);
+    date->year = (date->year & 0x0F) + ((date->year / 16) * 10); // BCD to actual integer
+}
+
 
 
 

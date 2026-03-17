@@ -8,6 +8,7 @@
 
 #define KEYBOARD_ENCODER_PORT 0x60
 #define KEYBOARD_CONTROLLER_PORT 0x64
+#define KEYBOARD_SELF_TEST_ACK 0x55
 
 enum KEYBOARD_CONTROLLER_STATUS_MASK {
  
@@ -96,6 +97,7 @@ void keyboard_controller_disable() {
 }
 
 void keyboard_controller_enable() {
+    block_till_controller_io_in_buf_ready();
     outb(KC_ENABLE, KEYBOARD_CONTROLLER_PORT);
 }
 
@@ -105,11 +107,12 @@ void keyboard_encoder_enable() {
 
 bool has_keyboard_controller_passed_self_test() {
     outb(CONTROLLER_SELF_TEST, KEYBOARD_CONTROLLER_PORT);
-    return false;
+    block_till_controller_io_out_buf_ready();
+    return keyboard_poll_encoder_status() & KEYBOARD_SELF_TEST_ACK;
 }
 
 uint8_t poll_scan_code() {
-    block_till_controller_io_in_buf_ready();
+    //block_till_controller_io_in_buf_ready();
     outb(READ_OUTPUT, KEYBOARD_CONTROLLER_PORT);
     block_till_controller_io_out_buf_ready();
     return inb(KEYBOARD_ENCODER_PORT);
