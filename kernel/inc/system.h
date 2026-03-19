@@ -41,6 +41,12 @@ void get_cpu_information(struct cpuid_t* cpu_information) {
     return;
 }
 
+static inline void set_cr0(uint64_t register_cr0) {
+    asm ("movq %0, %%cr0; "
+        :"=r"(register_cr0)    
+    );
+}
+
 uint64_t get_cr0() {
     uint64_t register_cr0 = 0x0;
     asm ("movq %%cr0, %0; "
@@ -102,13 +108,30 @@ void get_real_time_date(rtc_date_t* date) {
 
     outb(DAY_REGISTER, CMOS_OUTPUT_PORT);
     date->day = (uint8_t)inb(CMOS_INPUT_PORT);
-    date->day = (date->day & 0x0F) + ((date->day / 16) * 10) - 1; // BCD to actual integer
+    date->day = (date->day & 0x0F) + ((date->day / 16) * 10); // BCD to actual integer
 
     outb(YEAR_REGISTER, CMOS_OUTPUT_PORT);
     date->year = (uint8_t)inb(CMOS_INPUT_PORT);
     date->year = (date->year & 0x0F) + ((date->year / 16) * 10); // BCD to actual integer
 }
 
+
+//Enters real mode to shutdown (experimental may blow the kernel call it if you are brave!)
+void shutdown_pc() {
+    uint64_t cr0_with_protected_mode_bit_disabled = get_cr0() & 0b11111111111111111111111111111110;
+    set_cr0(cr0_with_protected_mode_bit_disabled);
+    asm("mov $0x5301, %ax");
+    asm("xor %bx, %bx");
+    asm("int $0x15");
+    asm("mov $0x530e, %ax");
+    asm("xor %bx, %bx");
+    asm("mov $0x0102, %cx");
+    asm("int $0x15");
+    asm("mov $0x5307, %ax");
+    asm("mov $0x0001, %bx");
+    asm("mov $0x0003, %cx");
+    asm("int $0x15");
+}
 
 
 

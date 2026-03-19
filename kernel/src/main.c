@@ -138,8 +138,12 @@ void kmain(void) {
     memcpy(buffer + offset, cpuid.cpu_manufactuer_string, string_length(cpuid.cpu_manufactuer_string));
     
     printk(framebuffer, buffer, from_rgb(0x82, 0x00,75));
-    printk(framebuffer, (((get_cr0() & (1 << 31)) != 0) ? "\nPaging Enabled [Yes]" : "\nPaging Enabled [No]"), from_rgb(0x82, 0x00,75));
-    
+    printk(framebuffer, (((get_cr0() & (1 << 31)) != 0) ? "\nPaging Enabled [Yes] and Kernel Heap Starts @ 0x" : "\nPaging Enabled [No] and Kernel Heap Starts @ 0x"), from_rgb(0x82, 0x00,75));
+    uint64_t start_of_heap_address = (uint64_t)start_of_heap;
+    char heap_address_text[20];
+    memset(heap_address_text, 0, sizeof(heap_address_text));
+    integer_to_hex(heap_address_text, start_of_heap_address);
+    printk(framebuffer, heap_address_text, from_rgb(0x82, 0x00,75));
     printk(framebuffer, "\nCR0 has the value of ", from_rgb(0x82, 0x00,75));
     printk(framebuffer, get_cr0_as_heap_str(), from_rgb(0x82, 0x00,75));
     printk(framebuffer, " and CR3 has the value of ", from_rgb(0x82, 0x00,75));
