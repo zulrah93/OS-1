@@ -3,7 +3,7 @@
 #include <memory.h>
 #include <utility.h>
 #include <io.h>
-
+#include <stdint.h>
 #include "/usr/lib/gcc/x86_64-linux-gnu/15/include/cpuid.h"
 
 #define CPU_MANU_STRING_LENGTH_PLUS_NULL 13

@@ -7,6 +7,9 @@
 #include <fonts.h>
 #include <system.h>
 #include <keyboard.h>
+#include <kernel_rand.h>
+
+#define KERNEL_DEFAULT_FONT_COLOR from_rgb(0x82, 0x00,75)
 
 // Set the base revision to 3, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -83,6 +86,8 @@ void kmain(void) {
     // Initialize memory pool
     init_memory_pool(entries, entry_count);
 
+    kernel_random_seed();
+
    
     // Ensure we got a framebuffer.
     if (framebuffer_request.response == NULL
@@ -137,37 +142,46 @@ void kmain(void) {
     offset = string_length(buffer);
     memcpy(buffer + offset, cpuid.cpu_manufactuer_string, string_length(cpuid.cpu_manufactuer_string));
     
-    printk(framebuffer, buffer, from_rgb(0x82, 0x00,75));
-    printk(framebuffer, (((get_cr0() & (1 << 31)) != 0) ? "\nPaging Enabled [Yes] and Kernel Heap Starts @ 0x" : "\nPaging Enabled [No] and Kernel Heap Starts @ 0x"), from_rgb(0x82, 0x00,75));
+    printk(framebuffer, buffer, KERNEL_DEFAULT_FONT_COLOR);
+    printk(framebuffer, (((get_cr0() & (1 << 31)) != 0) ? "\nPaging Enabled [Yes] and Kernel Heap Starts @ 0x" : "\nPaging Enabled [No] and Kernel Heap Starts @ 0x"), KERNEL_DEFAULT_FONT_COLOR);
     uint64_t start_of_heap_address = (uint64_t)start_of_heap;
     char heap_address_text[20];
     memset(heap_address_text, 0, sizeof(heap_address_text));
     integer_to_hex(heap_address_text, start_of_heap_address);
-    printk(framebuffer, heap_address_text, from_rgb(0x82, 0x00,75));
-    printk(framebuffer, "\nCR0 has the value of ", from_rgb(0x82, 0x00,75));
-    printk(framebuffer, get_cr0_as_heap_str(), from_rgb(0x82, 0x00,75));
-    printk(framebuffer, " and CR3 has the value of ", from_rgb(0x82, 0x00,75));
-    printk(framebuffer, get_cr3_as_heap_str(), from_rgb(0x82, 0x00,75));
-    printk(framebuffer, " and the date is ", from_rgb(0x82, 0x00,75));
+    printk(framebuffer, heap_address_text, KERNEL_DEFAULT_FONT_COLOR);
+    printk(framebuffer, "\nCR0 has the value of ", KERNEL_DEFAULT_FONT_COLOR);
+    printk(framebuffer, get_cr0_as_heap_str(), KERNEL_DEFAULT_FONT_COLOR);
+    printk(framebuffer, " and CR3 has the value of ", KERNEL_DEFAULT_FONT_COLOR);
+    printk(framebuffer, get_cr3_as_heap_str(), KERNEL_DEFAULT_FONT_COLOR);
+    printk(framebuffer, " and the date is ", KERNEL_DEFAULT_FONT_COLOR);
     rtc_date_t date;
     memset(&date, 0, sizeof(date));
     get_real_time_date(&date);
     char month[3];
     memset(month, 0, sizeof(month));
     integer_to_string(month, date.month);
-    printk(framebuffer, month, from_rgb(0x82, 0x00,75));
-    printk(framebuffer, "/", from_rgb(0x82, 0x00,75));
+    printk(framebuffer, month, KERNEL_DEFAULT_FONT_COLOR);
+    printk(framebuffer, "/", KERNEL_DEFAULT_FONT_COLOR);
     char day[3];
     memset(day, 0, sizeof(day));
     integer_to_string(day, date.day);
-    printk(framebuffer, day, from_rgb(0x82, 0x00,75));
-    printk(framebuffer, "/", from_rgb(0x82, 0x00,75));
+    printk(framebuffer, day, KERNEL_DEFAULT_FONT_COLOR);
+    printk(framebuffer, "/", KERNEL_DEFAULT_FONT_COLOR);
     char year[3];
     memset(year, 0, sizeof(year));
     integer_to_string(year, date.year);
-    printk(framebuffer, year, from_rgb(0x82, 0x00,75));
-    printk(framebuffer, "\n", from_rgb(0x82, 0x00,75));
-    set_cursor_position(8, 0);
+    printk(framebuffer, year, KERNEL_DEFAULT_FONT_COLOR);
+    printk(framebuffer, " and is RDSEED instruction supported? ", KERNEL_DEFAULT_FONT_COLOR);
+    printk(framebuffer, is_rdseed_supported() ? " yes\n" : "no\n", KERNEL_DEFAULT_FONT_COLOR);
+    printk(framebuffer, "Lucky numbers for today's session are ", KERNEL_DEFAULT_FONT_COLOR);
+    for (size_t _ = 0; _ < 10; _++) {
+        char temp_lucky_number[5] = {0};
+        integer_to_string(temp_lucky_number, kernel_random() % 1001);
+        printk(framebuffer, temp_lucky_number, KERNEL_DEFAULT_FONT_COLOR);
+        printk(framebuffer, " ", KERNEL_DEFAULT_FONT_COLOR);
+    }
+    printk(framebuffer, "\n", KERNEL_DEFAULT_FONT_COLOR);
+    set_cursor_position(9, 0);
     printk(framebuffer, "$ ", from_rgb(0x82, 0x00, 0x4b));
 
     // uint8_t scan_code = poll_scan_code();
