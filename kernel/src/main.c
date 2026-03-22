@@ -172,16 +172,20 @@ void kmain(void) {
     integer_to_string(year, date.year);
     printk(framebuffer, year, KERNEL_DEFAULT_FONT_COLOR);
     printk(framebuffer, " and is RDSEED instruction supported? ", KERNEL_DEFAULT_FONT_COLOR);
-    printk(framebuffer, is_rdseed_supported() ? " yes\n" : "no\n", KERNEL_DEFAULT_FONT_COLOR);
-    printk(framebuffer, "Lucky numbers for today's session are ", KERNEL_DEFAULT_FONT_COLOR);
-    for (size_t _ = 0; _ < 10; _++) {
-        char temp_lucky_number[5] = {0};
-        integer_to_string(temp_lucky_number, kernel_random() % 1001);
-        printk(framebuffer, temp_lucky_number, KERNEL_DEFAULT_FONT_COLOR);
-        printk(framebuffer, " ", KERNEL_DEFAULT_FONT_COLOR);
+    bool rdseed_supported = is_rdseed_supported();
+    printk(framebuffer, rdseed_supported ? " yes\n" : "no\n", KERNEL_DEFAULT_FONT_COLOR);
+    if (rdseed_supported) {
+        printk(framebuffer, "Lucky numbers for today's session are ", KERNEL_DEFAULT_FONT_COLOR);
+        for (size_t _ = 0; _ < 10; _++) {
+            char temp_lucky_number[5] = {0};
+            integer_to_string(temp_lucky_number, kernel_random() % 1001);
+            printk(framebuffer, temp_lucky_number, KERNEL_DEFAULT_FONT_COLOR);
+            printk(framebuffer, " ", KERNEL_DEFAULT_FONT_COLOR);
+        }
+        printk(framebuffer, "\n", KERNEL_DEFAULT_FONT_COLOR);
+        set_cursor_position(9, 0);
     }
-    printk(framebuffer, "\n", KERNEL_DEFAULT_FONT_COLOR);
-    set_cursor_position(9, 0);
+    set_cursor_position(8, 0);
     printk(framebuffer, "$ ", from_rgb(0x82, 0x00, 0x4b));
 
     // uint8_t scan_code = poll_scan_code();

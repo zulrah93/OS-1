@@ -19,6 +19,9 @@ bool is_rdseed_supported() {
 static uint64_t next_random_value = 0;
 
 void kernel_random_seed() { // Slow avoid calling more than once since its hardware random and truely random
+    if (!is_rdseed_supported()) {
+        return;
+    }
     uint64_t temp_random_value = 0;
     asm ("rdseed %0; " :"=r"(temp_random_value));
     next_random_value = temp_random_value;
