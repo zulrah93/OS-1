@@ -5,13 +5,13 @@
 
 //Uses x86 hardware true random opcodes (only if supported else these functions will be undefined behavior maybe an explosion or two...)
 
-bool is_rdseed_supported() {
+bool is_rdseed_supported() { // Refer to 5.1 section in https://cdrdv2-public.intel.com/864722/drng-software-implementation-guide.pdf
     int32_t eax = 7;
     int32_t ebx;
     int32_t ecx = 0;
     int32_t edx = 0;
     __cpuid(0, eax, ebx, ecx, edx); 
-    return (ebx & 1) == 1;
+    return (ebx & (1 << 18)) != 0; // If bit 18th is set then RDSEED is supported
 }
 
 
