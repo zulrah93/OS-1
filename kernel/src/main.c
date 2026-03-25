@@ -8,6 +8,7 @@
 #include <system.h>
 #include <keyboard.h>
 #include <kernel_rand.h>
+#include <kernel_string.h>
 
 #define KERNEL_DEFAULT_FONT_COLOR from_rgb(0x82, 0x00,75)
 
@@ -123,7 +124,10 @@ void kmain(void) {
 
     get_cpu_information(&cpuid);
     char* buffer = (char*)k_malloc(256); //[512];
-    memset(buffer, '\0', 128);
+    memset(buffer, '\0', 256);
+
+    // kernel_string kernel_buffer;
+    // create_empty_kernel_string(&kernel_buffer, 256);
     
     const char* welcome_text = "Welcome to OS/1!\nTotal System Memory (Bytes): ";
     uint32_t welcome_text_length = string_length(welcome_text);
@@ -186,7 +190,11 @@ void kmain(void) {
         set_cursor_position(9, 0);
     }
     set_cursor_position(8, 0);
-    printk(framebuffer, "$ ", from_rgb(0x82, 0x00, 0x4b));
+    kernel_string k_str;
+    create_empty_kernel_string(&k_str, 10);
+    append_c_str_to_kernel_string(&k_str, "$ ");
+    print_kernel_string(framebuffer, k_str, from_rgb(0x82, 0x00, 0x4b));
+    //printk(framebuffer, "$ ", from_rgb(0x82, 0x00, 0x4b));
 
     // uint8_t scan_code = poll_scan_code();
     // do {
