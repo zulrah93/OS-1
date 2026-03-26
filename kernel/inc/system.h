@@ -64,7 +64,7 @@ char* get_cr0_as_heap_str(){
     memset(cr0_str, 0, 14);
     cr0_str[0] = '0';
     cr0_str[1] = 'x';
-    integer_to_hex(cr0_str + 2, cr0);
+    integer_to_hex_string(cr0_str + 2, cr0);
     return cr0_str;
 }
 
@@ -85,7 +85,7 @@ char* get_cr3_as_heap_str(){
     memset(cr3_str, 0, 14);
     cr3_str[0] = '0';
     cr3_str[1] = 'x';
-    integer_to_hex(cr3_str + 2, cr3);
+    integer_to_hex_string(cr3_str + 2, cr3);
     return cr3_str;
 }
 

@@ -48,7 +48,7 @@ void append_c_str_to_kernel_string(kernel_string* new_string, char * c_str) {
     if (gross_length >= new_string->capacity) {
         return;
     }
-    memcpy(new_string->c_str + new_string->length + 1, c_str, length);
+    memcpy(new_string->c_str + new_string->length, c_str, length);
     new_string->length += length;
 
 }
@@ -57,8 +57,23 @@ void assign_integer_to_kernel_string(kernel_string* new_string, size_t integer) 
     if (NULL == new_string) {
         return;
     }
-    char c_str[14] = {0};
+    char c_str[20] = {0};
     integer_to_string(c_str, integer);
+    size_t length = string_length(c_str);
+    if (length >= new_string->capacity) {
+        return;
+    }
+    memcpy(new_string->c_str, c_str, length);
+    new_string->length = length;
+
+}
+
+void assign_hex_to_kernel_string(kernel_string* new_string, size_t integer) {
+    if (NULL == new_string) {
+        return;
+    }
+    char c_str[20] = {0};
+    integer_to_hex_string(c_str, integer);
     size_t length = string_length(c_str);
     if (length >= new_string->capacity) {
         return;
@@ -76,14 +91,34 @@ void append_integer_to_kernel_string(kernel_string* new_string, size_t integer) 
         assign_integer_to_kernel_string(new_string, integer);
         return;
     }
-    char c_str[14] = {0};
+    char c_str[20] = {0};
     integer_to_string(c_str, integer);
     size_t length = string_length(c_str);
     size_t gross_length = length + new_string->length;
     if (gross_length >= new_string->capacity) {
         return;
     }
-    memcpy(new_string->c_str + new_string->length + 1, c_str, length);
+    memcpy(new_string->c_str + new_string->length, c_str, length);
+    new_string->length += length;
+
+}
+
+void append_hex_to_kernel_string(kernel_string* new_string, size_t integer) {
+    if (NULL == new_string) {
+        return;
+    }
+    if (0 == new_string->length) {
+        assign_hex_to_kernel_string(new_string, integer);
+        return;
+    }
+    char c_str[20] = {0};
+    integer_to_hex_string(c_str, integer);
+    size_t length = string_length(c_str);
+    size_t gross_length = length + new_string->length;
+    if (gross_length >= new_string->capacity) {
+        return;
+    }
+    memcpy(new_string->c_str + new_string->length, c_str, length);
     new_string->length += length;
 
 }

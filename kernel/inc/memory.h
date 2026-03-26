@@ -74,7 +74,10 @@ typedef struct {
 
 } heap_header_t;
 
+// Global variables to manage heap and constants
+#define CAPACITY 50000
 static heap_header_t* start_of_heap = NULL;
+static size_t heap_usage_bytes = 0; // Includes meta information as well 
 
 bool init_memory_pool(struct limine_memmap_entry** entries, const size_t entries_size) {
     if (NULL == entries) {
@@ -90,6 +93,8 @@ bool init_memory_pool(struct limine_memmap_entry** entries, const size_t entries
             return true;
         }
     }
+
+    heap_usage_bytes = 0;
     
     return NULL != start_of_heap;
 }
@@ -100,12 +105,17 @@ void* k_malloc(size_t bytes) {
         return NULL;
     }
 
+    if ((heap_usage_bytes + (sizeof(heap_header_t) + bytes)) >= CAPACITY) {
+        return NULL;
+    }
+
     if (0 == start_of_heap->block_size_bytes) {
         start_of_heap->block_size_bytes = bytes;
         start_of_heap->is_free = false;
         heap_header_t* next_free_header = (heap_header_t*)((char*)start_of_heap + sizeof(heap_header_t) + start_of_heap->block_size_bytes);
         next_free_header->block_size_bytes = 0;
         next_free_header->is_free = true;
+        heap_usage_bytes += (sizeof(heap_header_t) + bytes);
         return (start_of_heap + 1);
     }
 
@@ -126,6 +136,7 @@ void* k_malloc(size_t bytes) {
     heap_header_t* next_free_header = (heap_header_t*)((char*)head + sizeof(heap_header_t) + head->block_size_bytes);
     next_free_header->block_size_bytes = 0;
     next_free_header->is_free = true;
+    heap_usage_bytes += (sizeof(heap_header_t) + bytes);
     return (head + 1);
 }
 
@@ -134,8 +145,12 @@ void k_free(void* block) {
     if (NULL == block) {
         return;
     }
+    if (0 == heap_usage_bytes) {
+        return;
+    }
     heap_header_t* block_header = (heap_header_t*)block - 1;
     block_header->is_free = true;
+    heap_usage_bytes -= (sizeof(heap_header_t) + block_header->block_size_bytes);
 }
 
 //Note: Use k_free since this is just convience for k_malloc string allocation

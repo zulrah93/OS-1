@@ -23,8 +23,11 @@ typedef struct {
     uint32_t width;         /* width in pixels */
 } PSF_font;
 
-#define ROW_VGA_ADDRESS 0xffff800000000010
-#define COLUMN_VGA_ADDRESS 0xffff800000000020
+#define ROW_VGA_ADDRESS 0xffff80000000e000
+#define COLUMN_VGA_ADDRESS 0xffff80000000f000
+
+// #define ROW_VGA_ADDRESS 0xffff80000000fffd
+// #define COLUMN_VGA_ADDRESS 0xffff80000000fffe
 
 extern PSF_font _binary_src_font_psf_start;
 

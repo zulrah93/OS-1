@@ -123,88 +123,50 @@ void kmain(void) {
     memset(&cpuid, 0, sizeof(cpuid));
 
     get_cpu_information(&cpuid);
-    char* buffer = (char*)k_malloc(256); //[512];
-    memset(buffer, '\0', 256);
 
-    // kernel_string kernel_buffer;
-    // create_empty_kernel_string(&kernel_buffer, 256);
+    kernel_string kernel_buffer;
+    create_empty_kernel_string(&kernel_buffer, 1024);
+
+    append_c_str_to_kernel_string(&kernel_buffer, "Welcome to OS/1!\nTotal System Memory (Bytes): ");
+    append_integer_to_kernel_string(&kernel_buffer, total_memory_size);
     
-    const char* welcome_text = "Welcome to OS/1!\nTotal System Memory (Bytes): ";
-    uint32_t welcome_text_length = string_length(welcome_text);
-    memcpy(buffer, welcome_text, welcome_text_length);
-    integer_to_string(buffer + welcome_text_length, total_memory_size);
-    uint32_t offset = string_length(buffer);
+    append_c_str_to_kernel_string(&kernel_buffer, "\nUsable Memory (Bytes): ");
+    append_integer_to_kernel_string(&kernel_buffer, total_usable_memory);
     
-    const char* usable_memory_text = "\nUsable Memory (Bytes): ";
-    memcpy(buffer + offset, usable_memory_text, string_length(usable_memory_text));
-    offset = string_length(buffer);
-    integer_to_string(buffer + offset, total_usable_memory);
-    offset = string_length(buffer);
-    
-    const char* cpu_text = "\nCPU Detected: ";
-    memcpy(buffer + offset, cpu_text, string_length(cpu_text));
-    offset = string_length(buffer);
-    memcpy(buffer + offset, cpuid.cpu_manufactuer_string, string_length(cpuid.cpu_manufactuer_string));
-    
-    printk(framebuffer, buffer, KERNEL_DEFAULT_FONT_COLOR);
-    printk(framebuffer, (((get_cr0() & (1 << 31)) != 0) ? "\nPaging Enabled [Yes] and Kernel Heap Starts @ 0x" : "\nPaging Enabled [No] and Kernel Heap Starts @ 0x"), KERNEL_DEFAULT_FONT_COLOR);
-    uint64_t start_of_heap_address = (uint64_t)start_of_heap;
-    char heap_address_text[20];
-    memset(heap_address_text, 0, sizeof(heap_address_text));
-    integer_to_hex(heap_address_text, start_of_heap_address);
-    printk(framebuffer, heap_address_text, KERNEL_DEFAULT_FONT_COLOR);
-    printk(framebuffer, "\nCR0 has the value of ", KERNEL_DEFAULT_FONT_COLOR);
-    printk(framebuffer, get_cr0_as_heap_str(), KERNEL_DEFAULT_FONT_COLOR);
-    printk(framebuffer, " and CR3 has the value of ", KERNEL_DEFAULT_FONT_COLOR);
-    printk(framebuffer, get_cr3_as_heap_str(), KERNEL_DEFAULT_FONT_COLOR);
-    printk(framebuffer, " and the date is ", KERNEL_DEFAULT_FONT_COLOR);
+    append_c_str_to_kernel_string(&kernel_buffer, "\nCPU Detected: ");
+    append_c_str_to_kernel_string(&kernel_buffer, cpuid.cpu_manufactuer_string);
+    append_c_str_to_kernel_string(&kernel_buffer, (((get_cr0() & (1 << 31)) != 0) 
+               ? "\nPaging Enabled [Yes] and Kernel Heap Starts @ 0x" : "\nPaging Enabled [No] and Kernel Heap Starts @ 0x"));
+    append_hex_to_kernel_string(&kernel_buffer, (uint64_t)start_of_heap);
+    append_c_str_to_kernel_string(&kernel_buffer, "\nCR0 has the value of ");
+    append_c_str_to_kernel_string(&kernel_buffer,  get_cr0_as_heap_str());
+    append_c_str_to_kernel_string(&kernel_buffer, " and CR3 has the value of ");
+    append_c_str_to_kernel_string(&kernel_buffer, get_cr3_as_heap_str());
+    append_c_str_to_kernel_string(&kernel_buffer, " and the date is ");
     rtc_date_t date;
     memset(&date, 0, sizeof(date));
     get_real_time_date(&date);
-    char month[3];
-    memset(month, 0, sizeof(month));
-    integer_to_string(month, date.month);
-    printk(framebuffer, month, KERNEL_DEFAULT_FONT_COLOR);
-    printk(framebuffer, "/", KERNEL_DEFAULT_FONT_COLOR);
-    char day[3];
-    memset(day, 0, sizeof(day));
-    integer_to_string(day, date.day);
-    printk(framebuffer, day, KERNEL_DEFAULT_FONT_COLOR);
-    printk(framebuffer, "/", KERNEL_DEFAULT_FONT_COLOR);
-    char year[3];
-    memset(year, 0, sizeof(year));
-    integer_to_string(year, date.year);
-    printk(framebuffer, year, KERNEL_DEFAULT_FONT_COLOR);
-    printk(framebuffer, " and is RDSEED instruction supported? ", KERNEL_DEFAULT_FONT_COLOR);
+    append_integer_to_kernel_string(&kernel_buffer, date.month);
+    append_c_str_to_kernel_string(&kernel_buffer, "/");
+    append_integer_to_kernel_string(&kernel_buffer, date.day);
+    append_c_str_to_kernel_string(&kernel_buffer, "/");
+    append_integer_to_kernel_string(&kernel_buffer, date.year);
+    append_c_str_to_kernel_string(&kernel_buffer, " and is RDSEED instruction supported? ");
+    
     bool rdseed_supported = is_rdseed_supported();
-    printk(framebuffer, rdseed_supported ? " yes\n" : "no\n", KERNEL_DEFAULT_FONT_COLOR);
+    
+    append_c_str_to_kernel_string(&kernel_buffer, rdseed_supported ? " yes\n" : "no\n");
+    
     if (rdseed_supported) {
-        printk(framebuffer, "Lucky numbers for today's session are ", KERNEL_DEFAULT_FONT_COLOR);
+        append_c_str_to_kernel_string(&kernel_buffer, "Lucky numbers for today's session are ");
         for (size_t _ = 0; _ < 10; _++) {
-            char temp_lucky_number[5] = {0};
-            integer_to_string(temp_lucky_number, kernel_random() % 1001);
-            printk(framebuffer, temp_lucky_number, KERNEL_DEFAULT_FONT_COLOR);
-            printk(framebuffer, " ", KERNEL_DEFAULT_FONT_COLOR);
+            append_integer_to_kernel_string(&kernel_buffer, kernel_random() % 1001);
+            append_c_str_to_kernel_string(&kernel_buffer, " ");
         }
-        printk(framebuffer, "\n", KERNEL_DEFAULT_FONT_COLOR);
-        set_cursor_position(9, 0);
     }
-    set_cursor_position(8, 0);
-    kernel_string k_str;
-    create_empty_kernel_string(&k_str, 10);
-    append_c_str_to_kernel_string(&k_str, "$ ");
-    print_kernel_string(framebuffer, k_str, from_rgb(0x82, 0x00, 0x4b));
-    //printk(framebuffer, "$ ", from_rgb(0x82, 0x00, 0x4b));
-
-    // uint8_t scan_code = poll_scan_code();
-    // do {
-    //     if (scan_code >= 1 && scan_code <= 58) {
-    //         break;
-    //     }
-    //     if (scan_code >= 0x81 && scan_code <= 0xd8) {
-    //         break;
-    //     }
-    // } while (scan_code)
+    
+    append_c_str_to_kernel_string(&kernel_buffer, "\n\n$ ");
+    print_kernel_string(framebuffer, kernel_buffer, KERNEL_DEFAULT_FONT_COLOR);
 
     // We're done, just hang...
     halt(framebuffer);

@@ -12,8 +12,8 @@ uint32_t string_length(char* string) {
 
 void integer_to_string(char* buffer, uint64_t number) {
 
-    if (number == 0) {
-        buffer[0] = '0';
+    if (number < 10) {
+        buffer[0] = ('0' + (char)number);
         return;
     }
     int64_t digit_count = 0;
@@ -35,7 +35,7 @@ void integer_to_string(char* buffer, uint64_t number) {
     }
 }
 
-void integer_to_hex(char* buffer, uint64_t number) {
+void integer_to_hex_string(char* buffer, uint64_t number) {
 
     if (number == 0) {
         buffer[0] = '0';
