@@ -75,7 +75,7 @@ typedef struct {
 } heap_header_t;
 
 // Global variables to manage heap and constants
-#define CAPACITY 50000
+#define HEAP_CAPACITY 50000
 static heap_header_t* start_of_heap = NULL;
 static size_t heap_usage_bytes = 0; // Includes meta information as well 
 
@@ -105,7 +105,7 @@ void* k_malloc(size_t bytes) {
         return NULL;
     }
 
-    if ((heap_usage_bytes + (sizeof(heap_header_t) + bytes)) >= CAPACITY) {
+    if ((heap_usage_bytes + (sizeof(heap_header_t) + bytes)) >= HEAP_CAPACITY) {
         return NULL;
     }
 

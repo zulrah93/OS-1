@@ -17,6 +17,8 @@
 #define MONTH_REGISTER 0x08
 #define YEAR_REGISTER 0x09
 
+#define LA57_BIT 12
+
 #define MAX_DATE_STRING_LENGTH 11 // Includes null char
 
 struct cpuid_t {
@@ -87,6 +89,31 @@ char* get_cr3_as_heap_str(){
     cr3_str[1] = 'x';
     integer_to_hex_string(cr3_str + 2, cr3);
     return cr3_str;
+}
+
+uint64_t get_cr4() {
+    uint64_t register_cr4 = 0x0;
+    asm ("movq %%cr4, %0; "
+     :"=r"(register_cr4)    
+     );
+    return register_cr4;
+}
+
+char* get_cr4_as_heap_str(){
+    uint64_t cr4 = get_cr4();
+    char* cr4_str = (char*)k_malloc(14);
+    if (NULL == cr4_str) {
+        return NULL;
+    }
+    memset(cr4_str, 0, 14);
+    cr4_str[0] = '0';
+    cr4_str[1] = 'x';
+    integer_to_hex_string(cr4_str + 2, cr4);
+    return cr4_str;
+}
+
+bool is_5_level_page_table_supported() {
+    return (get_cr4() & (1 << LA57_BIT)) == 0;
 }
 
 typedef struct  {
