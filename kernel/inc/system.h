@@ -17,9 +17,6 @@
 #define MONTH_REGISTER 0x08
 #define YEAR_REGISTER 0x09
 
-#define PG_BIT 31
-#define LA57_BIT 12
-
 #define MAX_DATE_STRING_LENGTH 11 // Includes null char
 
 struct cpuid_t
@@ -120,16 +117,6 @@ char *get_cr4_as_heap_str()
     cr4_str[1] = 'x';
     integer_to_hex_string(cr4_str + 2, cr4);
     return cr4_str;
-}
-
-bool is_paging_enabled()
-{
-    return ((get_cr0() & (1 << PG_BIT)) >> PG_BIT) & 1;
-}
-
-bool is_5_level_page_table_supported()
-{
-    return ((get_cr4() & (1 << LA57_BIT)) >> LA57_BIT) & 1;
 }
 
 typedef struct

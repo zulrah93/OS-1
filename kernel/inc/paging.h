@@ -1,12 +1,29 @@
 #ifndef PAGING_H
 #define PAGING_H
 
-/*
-With 4-level paging, each paging structure comprises 512 = 29 entries and translation uses 9 bits at a time
-from a 48-bit linear address. Bits 47:39 identify the first paging-structure entry, bits 38:30 identify a second,
-bits 29:21 a third, and bits 20:12 identify a fourth. Again, the last identifies the page frame. (See Figure 5-8
-for an illustration.)
-*/
+#include <system.h>
+
+#define PG_BIT 31
+#define LA57_BIT 12
+#define PCIDE_BIT 17
+
+bool is_paging_enabled()
+{
+    return ((get_cr0() & (1 << PG_BIT)) >> PG_BIT) & 1;
+}
+
+bool is_5_level_page_table_supported()
+{
+    return ((get_cr4() & (1 << LA57_BIT)) >> LA57_BIT) & 1;
+}
+
+bool is_pcid_enabled() {
+    return ((get_cr4() & (1 << PCIDE_BIT)) >> PCIDE_BIT) & 1;
+}
+
+uint64_t* get_root_page_directory_table() { 
+    return (uint64_t*)(SLIDE_ADDRESS + ((get_cr3() & 0xfffffffffffff000) >> 0xfff));
+}
 
 
 #endif

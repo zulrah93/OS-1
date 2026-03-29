@@ -5,7 +5,7 @@
 #include <memory.h>
 #include <vga.h>
 #include <fonts.h>
-#include <system.h>
+#include <paging.h> // Includes system.h indirectly
 #include <keyboard.h>
 #include <kernel_rand.h>
 #include <kernel_vector.h>
@@ -140,19 +140,24 @@ void kmain(void) {
     append_c_str_to_kernel_string(&kernel_buffer, (is_paging_enabled() ? "\nPaging Enabled [Yes] and Kernel Heap Starts @ 0x" 
                                                                                     : "\nPaging Enabled [No] and Kernel Heap Starts @ 0x"));
     append_hex_to_kernel_string(&kernel_buffer, (uint64_t)start_of_heap);
+    
     if (is_5_level_page_table_supported()) {
         append_c_str_to_kernel_string(&kernel_buffer, " and using PML5T");
     }
     else {
         append_c_str_to_kernel_string(&kernel_buffer, " and using PML4T");
     }
-
     
-    append_c_str_to_kernel_string(&kernel_buffer, "\nCR0 has the value of ");
+    append_c_str_to_kernel_string(&kernel_buffer, "\n%cr0 has the value of ");
     append_c_str_to_kernel_string(&kernel_buffer,  get_cr0_as_heap_str());
-    append_c_str_to_kernel_string(&kernel_buffer, " and CR3 has the value of ");
+    append_c_str_to_kernel_string(&kernel_buffer, " and %cr3 has the value of ");
     append_c_str_to_kernel_string(&kernel_buffer, get_cr3_as_heap_str());
-    append_c_str_to_kernel_string(&kernel_buffer, " and the date is ");
+
+    append_c_str_to_kernel_string(&kernel_buffer, " and qword [%cr3] == 0b");
+    append_binary_to_kernel_string(&kernel_buffer, get_root_page_directory_table()[0]);
+    
+    append_c_str_to_kernel_string(&kernel_buffer, "\nThe date is ");
+    
     rtc_date_t date;
     memset(&date, 0, sizeof(date));
     get_real_time_date(&date);
