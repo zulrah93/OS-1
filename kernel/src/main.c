@@ -136,12 +136,16 @@ void kmain(void) {
     append_c_str_to_kernel_string(&kernel_buffer, "\nCPU Detected: ");
     append_c_str_to_kernel_string(&kernel_buffer, cpuid.cpu_manufactuer_string);
     
-    append_c_str_to_kernel_string(&kernel_buffer, (((get_cr0() & (1 << 31)) != 0) 
-               ? "\nPaging Enabled [Yes] and Kernel Heap Starts @ 0x" : "\nPaging Enabled [No] and Kernel Heap Starts @ 0x"));
+    append_c_str_to_kernel_string(&kernel_buffer, (is_paging_enabled() ? "\nPaging Enabled [Yes] and Kernel Heap Starts @ 0x" 
+                                                                                    : "\nPaging Enabled [No] and Kernel Heap Starts @ 0x"));
     append_hex_to_kernel_string(&kernel_buffer, (uint64_t)start_of_heap);
     if (is_5_level_page_table_supported()) {
-        append_c_str_to_kernel_string(&kernel_buffer, " and LA57 bit is set in CR4 register");
+        append_c_str_to_kernel_string(&kernel_buffer, " and using PML5T");
     }
+    else {
+        append_c_str_to_kernel_string(&kernel_buffer, " and using PML4T");
+    }
+
     
     append_c_str_to_kernel_string(&kernel_buffer, "\nCR0 has the value of ");
     append_c_str_to_kernel_string(&kernel_buffer,  get_cr0_as_heap_str());

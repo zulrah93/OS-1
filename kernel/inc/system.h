@@ -17,17 +17,21 @@
 #define MONTH_REGISTER 0x08
 #define YEAR_REGISTER 0x09
 
+#define PG_BIT 31
 #define LA57_BIT 12
 
 #define MAX_DATE_STRING_LENGTH 11 // Includes null char
 
-struct cpuid_t {
+struct cpuid_t
+{
     char cpu_manufactuer_string[CPU_MANU_STRING_LENGTH_PLUS_NULL];
 };
 
-void get_cpu_information(struct cpuid_t* cpu_information) {
-    
-    if (!cpu_information) {
+void get_cpu_information(struct cpuid_t *cpu_information)
+{
+
+    if (!cpu_information)
+    {
         return;
     }
 
@@ -35,7 +39,7 @@ void get_cpu_information(struct cpuid_t* cpu_information) {
 
     int32_t eax, ebx, ecx, edx;
     __cpuid(0, eax, ebx, ecx, edx); // level 0 returns a cpu manu string in the registers ebx, edx, and ecx respectively
-    
+
     memcpy(cpu_information->cpu_manufactuer_string, &ebx, sizeof(ebx));
     memcpy(cpu_information->cpu_manufactuer_string + sizeof(ebx), &edx, sizeof(edx));
     memcpy(cpu_information->cpu_manufactuer_string + sizeof(ebx) + sizeof(edx), &ecx, sizeof(ecx));
@@ -43,24 +47,26 @@ void get_cpu_information(struct cpuid_t* cpu_information) {
     return;
 }
 
-static inline void set_cr0(uint64_t register_cr0) {
-    asm ("movq %0, %%cr0; "
-        :"=r"(register_cr0)    
-    );
+static inline void set_cr0(uint64_t register_cr0)
+{
+    asm("movq %0, %%cr0; "
+        : "=r"(register_cr0));
 }
 
-uint64_t get_cr0() {
+uint64_t get_cr0()
+{
     uint64_t register_cr0 = 0x0;
-    asm ("movq %%cr0, %0; "
-     :"=r"(register_cr0)    
-     );
+    asm("movq %%cr0, %0; "
+        : "=r"(register_cr0));
     return register_cr0;
 }
 
-char* get_cr0_as_heap_str(){
+char *get_cr0_as_heap_str()
+{
     uint64_t cr0 = get_cr0();
-    char* cr0_str = (char*)k_malloc(14);
-    if (NULL == cr0_str) {
+    char *cr0_str = (char *)k_malloc(14);
+    if (NULL == cr0_str)
+    {
         return NULL;
     }
     memset(cr0_str, 0, 14);
@@ -70,18 +76,20 @@ char* get_cr0_as_heap_str(){
     return cr0_str;
 }
 
-uint64_t get_cr3() {
+uint64_t get_cr3()
+{
     uint64_t register_cr3 = 0x0;
-    asm ("movq %%cr3, %0; "
-     :"=r"(register_cr3)    
-     );
+    asm("movq %%cr3, %0; "
+        : "=r"(register_cr3));
     return register_cr3;
 }
 
-char* get_cr3_as_heap_str(){
+char *get_cr3_as_heap_str()
+{
     uint64_t cr3 = get_cr3();
-    char* cr3_str = (char*)k_malloc(14);
-    if (NULL == cr3_str) {
+    char *cr3_str = (char *)k_malloc(14);
+    if (NULL == cr3_str)
+    {
         return NULL;
     }
     memset(cr3_str, 0, 14);
@@ -91,18 +99,20 @@ char* get_cr3_as_heap_str(){
     return cr3_str;
 }
 
-uint64_t get_cr4() {
+uint64_t get_cr4()
+{
     uint64_t register_cr4 = 0x0;
-    asm ("movq %%cr4, %0; "
-     :"=r"(register_cr4)    
-     );
+    asm("movq %%cr4, %0; "
+        : "=r"(register_cr4));
     return register_cr4;
 }
 
-char* get_cr4_as_heap_str(){
+char *get_cr4_as_heap_str()
+{
     uint64_t cr4 = get_cr4();
-    char* cr4_str = (char*)k_malloc(14);
-    if (NULL == cr4_str) {
+    char *cr4_str = (char *)k_malloc(14);
+    if (NULL == cr4_str)
+    {
         return NULL;
     }
     memset(cr4_str, 0, 14);
@@ -112,23 +122,32 @@ char* get_cr4_as_heap_str(){
     return cr4_str;
 }
 
-bool is_5_level_page_table_supported() {
-    return (get_cr4() & (1 << LA57_BIT)) == 0;
+bool is_paging_enabled()
+{
+    return ((get_cr0() & (1 << PG_BIT)) >> PG_BIT) & 1;
 }
 
-typedef struct  {
+bool is_5_level_page_table_supported()
+{
+    return ((get_cr4() & (1 << LA57_BIT)) >> LA57_BIT) & 1;
+}
+
+typedef struct
+{
     uint8_t month;
     uint8_t day;
     uint8_t year;
 } rtc_date_t;
 
-void get_real_time_date(rtc_date_t* date) {
-    if (NULL == date) {
+void get_real_time_date(rtc_date_t *date)
+{
+    if (NULL == date)
+    {
         return;
     }
     char month[3];
     memset(month, 0, sizeof(month));
-    
+
     outb(MONTH_REGISTER, CMOS_OUTPUT_PORT);
     date->month = (uint8_t)inb(CMOS_INPUT_PORT);
     date->month = (date->month & 0x0F) + ((date->month / 16) * 10); // BCD to actual integer
@@ -142,9 +161,9 @@ void get_real_time_date(rtc_date_t* date) {
     date->year = (date->year & 0x0F) + ((date->year / 16) * 10); // BCD to actual integer
 }
 
-
-//Enters real mode to shutdown (experimental may blow the kernel call it if you are brave!)
-void shutdown_pc() {
+// Enters real mode to shutdown (experimental may blow the kernel call it if you are brave!)
+void shutdown_pc()
+{
     uint64_t cr0_with_protected_mode_bit_disabled = get_cr0() & 0b11111111111111111111111111111110;
     set_cr0(cr0_with_protected_mode_bit_disabled);
     asm("mov $0x5301, %ax");
@@ -159,7 +178,5 @@ void shutdown_pc() {
     asm("mov $0x0003, %cx");
     asm("int $0x15");
 }
-
-
 
 #endif
