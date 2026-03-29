@@ -8,6 +8,7 @@
 #include <system.h>
 #include <keyboard.h>
 #include <kernel_rand.h>
+#include <kernel_vector.h>
 #include <kernel_string.h>
 
 #define KERNEL_DEFAULT_FONT_COLOR from_rgb(0x82, 0x00,75)
