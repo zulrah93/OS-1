@@ -26,8 +26,6 @@ typedef struct {
 #define ROW_VGA_ADDRESS 0xffff80000000e000
 #define COLUMN_VGA_ADDRESS 0xffff80000000f000
 
-// #define ROW_VGA_ADDRESS 0xffff80000000fffd
-// #define COLUMN_VGA_ADDRESS 0xffff80000000fffe
 
 extern PSF_font _binary_src_font_psf_start;
 

@@ -153,8 +153,8 @@ void kmain(void) {
     append_c_str_to_kernel_string(&kernel_buffer, " and %cr3 has the value of ");
     append_c_str_to_kernel_string(&kernel_buffer, get_cr3_as_heap_str());
 
-    append_c_str_to_kernel_string(&kernel_buffer, " and qword [%cr3] == 0b");
-    append_binary_to_kernel_string(&kernel_buffer, get_root_page_directory_table()[0]);
+    append_c_str_to_kernel_string(&kernel_buffer, " and qword [%cr3] == 0x");
+    append_hex_to_kernel_string(&kernel_buffer, get_root_page_directory_table()[0]);
     
     append_c_str_to_kernel_string(&kernel_buffer, "\nThe date is ");
     

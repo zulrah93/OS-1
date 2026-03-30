@@ -86,7 +86,7 @@ bool init_memory_pool(struct limine_memmap_entry** entries, const size_t entries
 
     for(size_t index = 0; index < entries_size; index++) {
         if (entries[index]->type == LIMINE_MEMMAP_USABLE) {
-            start_of_heap = (heap_header_t*)(entries[index]->base + SLIDE_ADDRESS);
+            start_of_heap = (heap_header_t*)(entries[index]->base + SLIDE_ADDRESS + 100000);
             memset(start_of_heap, 0, sizeof(heap_header_t));
             start_of_heap->is_free = true;
             start_of_heap->block_size_bytes = 0;

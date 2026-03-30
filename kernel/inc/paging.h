@@ -25,5 +25,9 @@ uint64_t* get_root_page_directory_table() {
     return (uint64_t*)(SLIDE_ADDRESS + ((get_cr3() & 0xfffffffffffff000) >> 0xfff));
 }
 
+bool is_page_directory_entry_present_at(size_t page_directory_index) {
+       return 0 != (get_root_page_directory_table()[page_directory_index] & (size_t)1);
+}
+
 
 #endif

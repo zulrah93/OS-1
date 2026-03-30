@@ -25,8 +25,48 @@ void create_empty_kernel_array(kernel_array_t* array_handle, size_t sizeof_objec
     
 }
 
-bool index_kernel_array(kernel_array_t* array_handle, size_t index, void* out_value) {
-    return false;
+bool index_kernel_array(kernel_array_t* array_handle, size_t index, void* out_object) {
+    if (NULL == array_handle) {
+        return false;
+    }
+    if (0 == array_handle->sizeof_object) {
+        return false;
+    }
+    if (index >= array_handle->capacity) {
+        return false;
+    }
+    memcpy(out_object, array_handle->data + (array_handle->sizeof_object * index), array_handle->sizeof_object);
+}
+
+void override_at_kernel_array(kernel_array_t* array_handle, size_t index, void* object) {
+     if (NULL == array_handle) {
+        return false;
+    }
+    if (0 == array_handle->sizeof_object) {
+        return false;
+    }
+    if (index >= array_handle->capacity) {
+        return false;
+    }
+
+    memcpy(array_handle->data + (array_handle->sizeof_object * index), object, array_handle->sizeof_object);
+
+}
+
+void append_to_kernel_array(kernel_array_t* array_handle, void* object) {
+     if (NULL == array_handle) {
+        return false;
+    }
+    if (0 == array_handle->sizeof_object) {
+        return false;
+    }
+    if ((array_handle->count + 1) >= array_handle->capacity) {
+        return false;
+    }
+
+    memcpy(array_handle->data + (array_handle->sizeof_object * array_handle->count), object, array_handle->sizeof_object);
+
+    array_handle->count++;
 }
 
 #endif
