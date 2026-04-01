@@ -38,7 +38,7 @@ bool index_kernel_array(kernel_array_t* array_handle, size_t index, void* out_ob
     memcpy(out_object, array_handle->data + (array_handle->sizeof_object * index), array_handle->sizeof_object);
 }
 
-void override_at_kernel_array(kernel_array_t* array_handle, size_t index, void* object) {
+bool override_at_kernel_array(kernel_array_t* array_handle, size_t index, void* object) {
      if (NULL == array_handle) {
         return false;
     }
@@ -53,7 +53,7 @@ void override_at_kernel_array(kernel_array_t* array_handle, size_t index, void* 
 
 }
 
-void append_to_kernel_array(kernel_array_t* array_handle, void* object) {
+bool append_to_kernel_array(kernel_array_t* array_handle, void* object) {
      if (NULL == array_handle) {
         return false;
     }

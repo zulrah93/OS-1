@@ -22,8 +22,15 @@ void kernel_random_seed() { // Slow avoid calling more than once since its hardw
     if (!is_rdseed_supported()) {
         return;
     }
+    int got_carried = 0;
     uint64_t temp_random_value = 0;
-    asm ("rdseed %0; " :"=r"(temp_random_value));
+    do {
+        
+         asm ("rdseed %0; "
+            :"=r"(temp_random_value),
+            "=@ccc"(got_carried));
+    }
+    while((0 == (got_carried & 1)));
     next_random_value = temp_random_value;
 }
 
