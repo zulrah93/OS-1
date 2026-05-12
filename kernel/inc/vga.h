@@ -1,6 +1,8 @@
 #ifndef VGA_H
 #define VGA_H
 
+#include <utility.h>
+
 #pragma pack(1)
 typedef struct
 {
@@ -116,9 +118,10 @@ void draw_bitmap(const struct limine_framebuffer *frame_buffer, const bitmap_hea
         if ((pixel_index != 0) && (0 == (pixel_index % header->width))) {
             y_offset++;
         }
-        int32_t current_pixel = pixel[pixel_count - pixel_index - 1];
+        size_t true_index = pixel_count - pixel_index - 1;
+        int32_t current_pixel = pixel[true_index];
         plot_pixel(frame_buffer, 
-            x + (pixel_index % header->width) + pixel_padding, 
+            x + (true_index % header->width) + pixel_padding, 
             y + y_offset + pixel_padding, current_pixel);
     }
 
