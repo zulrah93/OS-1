@@ -166,4 +166,10 @@ void shutdown_pc()
     asm("int $0x15");
 }
 
+uint64_t get_system_tick() {
+    uint32_t low_word, high_word;
+    __asm__ __volatile__("rdtsc" : "=a"(low_word), "=d"(high_word));
+    return ((high_word) << 32) | low_word;
+}
+
 #endif

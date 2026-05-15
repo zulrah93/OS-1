@@ -179,10 +179,13 @@ void kmain(void) {
             append_c_str_to_kernel_string(&kernel_buffer, " ");
         }
     }
+
+    append_c_str_to_kernel_string(&kernel_buffer, "\nSystem booted in ");
+    append_integer_to_kernel_string(&kernel_buffer, get_system_tick());
     
-    append_c_str_to_kernel_string(&kernel_buffer, "\n\n$ ");
+    append_c_str_to_kernel_string(&kernel_buffer, " tick(s)\n\n$ ");
     print_kernel_string(framebuffer, kernel_buffer, KERNEL_DEFAULT_FONT_COLOR);
-   
+    
     // We're done, just hang...
     halt(framebuffer);
 }
