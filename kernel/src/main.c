@@ -182,7 +182,7 @@ void kmain(void) {
     
     append_c_str_to_kernel_string(&kernel_buffer, "\n\n$ ");
     print_kernel_string(framebuffer, kernel_buffer, KERNEL_DEFAULT_FONT_COLOR);
-
+   
     // We're done, just hang...
     halt(framebuffer);
 }
