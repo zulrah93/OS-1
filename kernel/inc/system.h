@@ -168,8 +168,33 @@ void shutdown_pc()
 
 uint64_t get_system_tick() {
     uint32_t low_word, high_word;
-    __asm__ __volatile__("rdtsc" : "=a"(low_word), "=d"(high_word));
+    asm("rdtsc" : "=a"(low_word), "=d"(high_word));
     return ((high_word) << 32) | low_word;
+}
+
+//Source: https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-3b-part-2-manual.pdf
+bool is_ia32_amperf_present() {
+    int32_t eax, ebx, ecx, edx;
+    __cpuid(7, eax, ebx, ecx, edx);
+    return (ecx & 1) == 1;
+}
+
+uint64_t get_ia32_mperf_special_register() {
+    uint32_t low_word, high_word;
+    asm("rdmsr" : "=a"(low_word), "=d"(high_word)
+                : "c"(0xe7));
+    return ((high_word) << 32) | low_word;
+}
+
+uint64_t get_ia32_aperf_special_register() {
+    uint32_t low_word, high_word;
+    asm("rdmsr" : "=a"(low_word), "=d"(high_word)
+                 : "c"(0xe8));
+    return ((high_word) << 32) | low_word;
+}
+
+uint64_t get_cpu_frequency() {
+    return 5582000000;
 }
 
 #endif
