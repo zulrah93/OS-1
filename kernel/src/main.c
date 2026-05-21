@@ -184,8 +184,9 @@ void kmain(void) {
     uint64_t ticks = get_system_tick();
     append_integer_to_kernel_string(&kernel_buffer, ticks);
     append_c_str_to_kernel_string(&kernel_buffer, " tick(s) -- IA32_MPERF/IA32_APERF Present? ");
-    append_c_str_to_kernel_string(&kernel_buffer, is_ia32_amperf_present() ? "yes" : "no"); 
-    append_c_str_to_kernel_string(&kernel_buffer, "\n\n$ ");
+    append_c_str_to_kernel_string(&kernel_buffer, is_ia32_amperf_present() ? "yes and  running @ " : "no and running @ "); 
+    append_integer_to_kernel_string(&kernel_buffer, get_cpu_frequency());
+    append_c_str_to_kernel_string(&kernel_buffer, " MHz\n\n$ ");
     print_kernel_string(framebuffer, kernel_buffer, KERNEL_DEFAULT_FONT_COLOR);
     
     // We're done, just hang...

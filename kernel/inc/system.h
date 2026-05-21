@@ -179,14 +179,14 @@ bool is_ia32_amperf_present() {
     return (ecx & 1) == 1;
 }
 
-uint64_t get_ia32_mperf_special_register() {
+uint32_t get_ia32_mperf_special_register() {
     uint32_t low_word, high_word;
     asm("rdmsr" : "=a"(low_word), "=d"(high_word)
                 : "c"(0xe7));
     return ((high_word) << 32) | low_word;
 }
 
-uint64_t get_ia32_aperf_special_register() {
+uint32_t get_ia32_aperf_special_register() {
     uint32_t low_word, high_word;
     asm("rdmsr" : "=a"(low_word), "=d"(high_word)
                  : "c"(0xe8));
@@ -194,7 +194,9 @@ uint64_t get_ia32_aperf_special_register() {
 }
 
 uint64_t get_cpu_frequency() {
-    return 5582000000;
+    int32_t eax=0x16, ebx, ecx, edx;
+    __cpuid(0, eax, ebx, ecx, edx);
+    return ebx & 0xffff;
 }
 
 #endif
