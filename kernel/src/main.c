@@ -4,6 +4,7 @@
 #include <limine.h>
 #include <memory.h>
 #include <vga.h>
+#include <idt.h>
 #include <fonts.h>
 #include <paging.h> // Includes system.h indirectly
 #include <keyboard.h>
@@ -106,6 +107,7 @@ void kmain(void) {
 
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
+    interrupt_descriptor_table_initialize(framebuffer);
 
     bitmap_header_t* boot_logo_bmp_header = get_embedded_boot_logo();
 
@@ -181,13 +183,19 @@ void kmain(void) {
     }
 
     append_c_str_to_kernel_string(&kernel_buffer, "\nSystem booted in ");
+
     uint64_t ticks = get_system_tick();
     append_integer_to_kernel_string(&kernel_buffer, ticks);
     append_c_str_to_kernel_string(&kernel_buffer, " tick(s) -- IA32_MPERF/IA32_APERF Present? ");
     append_c_str_to_kernel_string(&kernel_buffer, is_ia32_amperf_present() ? "yes and  running @ " : "no and running @ "); 
     append_integer_to_kernel_string(&kernel_buffer, get_cpu_frequency());
     append_c_str_to_kernel_string(&kernel_buffer, " MHz\n\n$ ");
+     for(;;) {
+         append_c_str_to_kernel_string(&kernel_buffer, "$");
+    }
     print_kernel_string(framebuffer, kernel_buffer, KERNEL_DEFAULT_FONT_COLOR);
+
+   
     
     // We're done, just hang...
     halt(framebuffer);
