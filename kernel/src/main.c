@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <limine.h>
 #include <memory.h>
+#include <system.h>
 #include <vga.h>
 #include <idt.h>
 #include <fonts.h>
@@ -60,7 +61,6 @@ static void halt(const struct limine_framebuffer *framebuffer) {
         else {
             asm("hlt");
         }
-       
     }
 }
 
@@ -165,7 +165,7 @@ void kmain(void) {
     append_c_str_to_kernel_string(&kernel_buffer, "/");
     append_integer_to_kernel_string(&kernel_buffer, date.day);
     append_c_str_to_kernel_string(&kernel_buffer, "/");
-    append_integer_to_kernel_string(&kernel_buffer, date.year / 0);
+    append_integer_to_kernel_string(&kernel_buffer, date.year);
     append_c_str_to_kernel_string(&kernel_buffer, " and is RDSEED instruction supported? ");
     
     bool rdseed_supported = is_rdseed_supported();
@@ -190,7 +190,7 @@ void kmain(void) {
     append_c_str_to_kernel_string(&kernel_buffer, " MHz\n\n$ ");
     print_kernel_string(framebuffer, kernel_buffer, KERNEL_DEFAULT_FONT_COLOR);
 
-   
+    asm("int $1;");
     
     // We're done, just hang...
     halt(framebuffer);

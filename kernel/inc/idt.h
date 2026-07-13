@@ -43,6 +43,10 @@ typedef struct {
     uint64_t base;
 }interrupt_descriptor_table_t;
 
+typedef struct {
+    uint64_t ip, cs, flags, sp, ss;
+}interrupt_frame_t;
+
 #pragma pack(pop)
 
 #define IDT_ENTRIES 256
@@ -53,55 +57,51 @@ static interrupt_descriptor_table_t   interrupt_descriptor_table_register;
 
 #define IDT_INTERRUPT_GATE 0x8E      
 
-#define KERNEL_CS 0x0            
+#define KERNEL_CS 0x28            
 
 
 static void idt_set_gate(uint8_t index, void* handler,
                           uint16_t selector)
 {
-    entries[index].offset_low  = (uint16_t)((size_t)handler & 0xFFFF);
+    entries[index].offset_low  = (size_t)handler & 0xFFFF;
     entries[index].selector    = selector;
     entries[index].interrupt_stack_table         = 0;      
     entries[index].type_attr   = IDT_INTERRUPT_GATE;
-    entries[index].offset_mid  = (uint16_t)(((size_t)handler >> 16) & 0xFFFF);
-    entries[index].offset_high = (uint32_t)(((size_t)handler >> 32) & 0xFFFFFFFF);
+    entries[index].offset_mid  = (((size_t)handler >> 16) & 0xFFFF);
+    entries[index].offset_high = (((size_t)handler >> 32) & 0xFFFFFFFF);
     entries[index].reserved    = 0;
 }
 
-
-
-struct interrupt_frame {
-    uint64_t ip, cs, flags, sp, ss;
+struct interrupt_frame_t
+{
+  uint64_t ip;
+  uint64_t cs;
+  uint64_t flags;
+  uint64_t sp;
+  uint64_t ss;
 };
 
-
-
 __attribute__((interrupt))
-static void divide_by_zero_handler(struct interrupt_frame *frame)
+void general_interrupt_handler(struct interrupt_frame_t* frame)
 {
     asm("cli");
     asm("hlt");
 }
 
-
 __attribute__((interrupt))
-static void page_fault_handler(struct interrupt_frame *frame, uint64_t error_code)
-{
-     asm("cli");
-     asm("hlt");
+void general_fault_handler(struct interrupt_frame *frame, uint64_t error_code) {
+    asm("cli");
+    asm("hlt");
 }
 
 
 void interrupt_descriptor_table_initialize()
 {
-
-    idt_set_gate(0,  divide_by_zero_handler,
-                 KERNEL_CS);
-    idt_set_gate(14, page_fault_handler,
-                 KERNEL_CS);
+    idt_set_gate(1, general_fault_handler, KERNEL_CS);
+    idt_set_gate(69, general_interrupt_handler, KERNEL_CS);
 
     interrupt_descriptor_table_register.limit = sizeof(entries) - 1;
-    interrupt_descriptor_table_register.base  = (uint64_t)&entries;
+    interrupt_descriptor_table_register.base  = (uint64_t)&entries[0];
     asm("lidt %0" : : "m"(interrupt_descriptor_table_register));
     asm("sti");
 }

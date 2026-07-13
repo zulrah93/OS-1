@@ -1,8 +1,6 @@
 #ifndef PAGING_H
 #define PAGING_H
 
-#include <system.h>
-
 #define PG_BIT 31
 #define LA57_BIT 12
 #define PCIDE_BIT 17
