@@ -64,14 +64,13 @@ static void halt(const struct limine_framebuffer *framebuffer) {
     }
 }
 
-// The following will be our kernel's entry point.
-// If renaming kmain() to something else, make sure to change the
-// linker script accordingly.
 void kmain(void) {
     // Ensure the bootloader actually understands our base revision (see spec).
     if (LIMINE_BASE_REVISION_SUPPORTED == false) {
         halt(NULL);
     }
+
+    interrupt_descriptor_table_initialize();
 
     uint64_t total_memory_size = 0;
     uint64_t total_usable_memory = 0;
@@ -107,7 +106,6 @@ void kmain(void) {
 
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
-    interrupt_descriptor_table_initialize(framebuffer);
 
     bitmap_header_t* boot_logo_bmp_header = get_embedded_boot_logo();
 
@@ -167,7 +165,7 @@ void kmain(void) {
     append_c_str_to_kernel_string(&kernel_buffer, "/");
     append_integer_to_kernel_string(&kernel_buffer, date.day);
     append_c_str_to_kernel_string(&kernel_buffer, "/");
-    append_integer_to_kernel_string(&kernel_buffer, date.year);
+    append_integer_to_kernel_string(&kernel_buffer, date.year / 0);
     append_c_str_to_kernel_string(&kernel_buffer, " and is RDSEED instruction supported? ");
     
     bool rdseed_supported = is_rdseed_supported();
@@ -190,9 +188,6 @@ void kmain(void) {
     append_c_str_to_kernel_string(&kernel_buffer, is_ia32_amperf_present() ? "yes and  running @ " : "no and running @ "); 
     append_integer_to_kernel_string(&kernel_buffer, get_cpu_frequency());
     append_c_str_to_kernel_string(&kernel_buffer, " MHz\n\n$ ");
-     for(;;) {
-         append_c_str_to_kernel_string(&kernel_buffer, "$");
-    }
     print_kernel_string(framebuffer, kernel_buffer, KERNEL_DEFAULT_FONT_COLOR);
 
    

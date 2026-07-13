@@ -3,7 +3,7 @@
 
 #include <utility.h>
 
-#pragma pack(1)
+#pragma pack(push, 1)
 typedef struct
 {
     char magic_field[2];
@@ -22,6 +22,7 @@ typedef struct
     uint32_t color_pallete_count;
     uint32_t important_colors_used;
 } bitmap_header_t;
+#pragma pack(pop)
 
 extern bitmap_header_t _binary_src_boot_logo_bmp_start;
 
