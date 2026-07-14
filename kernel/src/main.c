@@ -12,6 +12,7 @@
 #include <kernel_rand.h>
 #include <kernel_vector.h>
 #include <kernel_string.h>
+#include <debug.h>
 
 #define KERNEL_DEFAULT_FONT_COLOR from_rgb(0x82, 0x00,75)
 
@@ -53,7 +54,7 @@ static volatile LIMINE_REQUESTS_END_MARKER;
 
 // Halt and catch fire function.
 static void halt(const struct limine_framebuffer *framebuffer) {
-    uint32_t color = BLUE;
+    uint32_t color = BLACK;
     for (;;) {
         if (framebuffer) {
             fill_glyph(framebuffer, color);
@@ -190,7 +191,7 @@ void kmain(void) {
     append_c_str_to_kernel_string(&kernel_buffer, " MHz\n\n$ ");
     print_kernel_string(framebuffer, kernel_buffer, KERNEL_DEFAULT_FONT_COLOR);
 
-    asm("int $1;");
+    debug_breakpoint();
     
     // We're done, just hang...
     halt(framebuffer);
