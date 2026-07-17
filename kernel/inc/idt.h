@@ -44,7 +44,7 @@ typedef struct {
 }interrupt_descriptor_table_t;
 
 typedef struct {
-    uint64_t rax, rcx, rdx, rsi, rdi, rbp, r8, r9, r10, r11, r12, r13, r14, r15, error_code;
+    uint64_t rax, rcx, rdx, rsi, rdi, rbp, r8, r9, r10, r11, r12, r13, r14, r15;
 }interrupt_stack_frame_t;
 
 #pragma pack(pop)
@@ -55,32 +55,45 @@ static interrupt_descriptor_table_entry_t entries[IDT_ENTRIES];
 static interrupt_descriptor_table_t   interrupt_descriptor_table_register;
 
 
-#define IDT_INTERRUPT_GATE 0x8E                
+#define IDT_INTERRUPT_GATE_ATTRIBUTE 0x8E
+#define IDT_FAULT_GATE_ATTRIBUTE 0x8F
+#define PAGE_FAULT_INTERRUPT 0x0E         
 
 
 static void idt_set_gate(uint8_t index, void* handler,
-                          uint16_t selector)
+                          uint16_t selector, uint16_t attribute)
 {
     entries[index].offset_low  = (size_t)handler & 0xFFFF;
     entries[index].selector    = selector;
     entries[index].interrupt_stack_table         = 0;      
-    entries[index].type_attr   = IDT_INTERRUPT_GATE;
+    entries[index].type_attr   = attribute;
     entries[index].offset_mid  = (((size_t)handler >> 16) & 0xFFFF);
     entries[index].offset_high = (((size_t)handler >> 32) & 0xFFFFFFFF);
     entries[index].reserved    = 0;
 }
 
 void general_interrupt_handler(interrupt_stack_frame_t* registers) {
+    asm("cli");
+    asm("hlt");
+}
+
+void general_fault_handler(interrupt_stack_frame_t* registers, uint64_t error_code) {
+    asm("cli");
     asm("hlt");
 }
 
 void asm_interrupt_handler(void);
+void asm_fault_handler(void);
 
 void interrupt_descriptor_table_initialize()
 {
 
-    idt_set_gate(1, asm_interrupt_handler, get_code_segment_register());
-
+    idt_set_gate(0, asm_fault_handler, get_code_segment_register(), IDT_FAULT_GATE_ATTRIBUTE);
+    idt_set_gate(1, asm_interrupt_handler, get_code_segment_register(), IDT_FAULT_GATE_ATTRIBUTE);
+    idt_set_gate(PAGE_FAULT_INTERRUPT, asm_fault_handler, get_code_segment_register(), IDT_FAULT_GATE_ATTRIBUTE);
+    for(uint16_t interrupt_index =  0x20; interrupt_index <= 0xff; interrupt_index++) {
+        idt_set_gate((uint8_t)interrupt_index, asm_interrupt_handler, get_code_segment_register(), IDT_INTERRUPT_GATE_ATTRIBUTE);
+    }
     interrupt_descriptor_table_register.limit = sizeof(entries) - 1;
     interrupt_descriptor_table_register.base  = (uint64_t)&entries[0];
     asm("lidt %0" : : "m"(interrupt_descriptor_table_register));
