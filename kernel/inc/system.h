@@ -200,9 +200,10 @@ uint64_t get_cpu_frequency() {
 }
 
 uint16_t get_code_segment_register() {
-     uint16_t code_segment;
-     asm("mov %%cs, %0" : "=r"(code_segment));
-     return code_segment;
+    
+  uint16_t code_segment;
+  asm("mov %%cs, %0" : "=r"(code_segment));
+  return code_segment;
 }
 
 

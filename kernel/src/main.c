@@ -5,6 +5,7 @@
 #include <memory.h>
 #include <system.h>
 #include <vga.h>
+#include <gdt.h>
 #include <idt.h>
 #include <fonts.h>
 #include <paging.h> // Includes system.h indirectly
@@ -78,11 +79,15 @@ void kmain(void) {
 
     const size_t entry_count = memmap_request.response->entry_count; 
     struct limine_memmap_entry** entries = memmap_request.response->entries;
+    global_descriptor_table_t* gdt = NULL;
 
     for(size_t index = 0; index < entry_count; index++) {
         if (LIMINE_MEMMAP_USABLE == entries[index]->type) {
             total_usable_memory += entries[index]->length;
         }
+         if (LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE == entries[index]->type) {
+                gdt = (global_descriptor_table_t*)(entries[index]->base + SLIDE_ADDRESS);
+         }
         total_memory_size += entries[index]->length;
     }
 
@@ -141,6 +146,10 @@ void kmain(void) {
     append_c_str_to_kernel_string(&kernel_buffer, (is_paging_enabled() ? "\nPaging Enabled [Yes] and Kernel Heap Starts @ 0x" 
                                                                                     : "\nPaging Enabled [No] and Kernel Heap Starts @ 0x"));
     append_hex_to_kernel_string(&kernel_buffer, (uint64_t)start_of_heap);
+
+    append_c_str_to_kernel_string(&kernel_buffer, " and LGDT struct is @ ");
+
+    append_hex_to_kernel_string(&kernel_buffer, (uint64_t)gdt->limit);
     
     if (is_5_level_page_table_supported()) {
         append_c_str_to_kernel_string(&kernel_buffer, " and using PML5T");
@@ -191,7 +200,7 @@ void kmain(void) {
     append_c_str_to_kernel_string(&kernel_buffer, " MHz\n\n$ ");
     print_kernel_string(framebuffer, kernel_buffer, KERNEL_DEFAULT_FONT_COLOR);
 
-    debug_breakpoint();
+
     
     // We're done, just hang...
     halt(framebuffer);
